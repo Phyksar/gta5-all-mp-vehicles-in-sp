@@ -1,15 +1,15 @@
-﻿using System;
+﻿using GTA;
+using GTA.Math;
+using GTA.Native;
+using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using GTA;
-using GTA.Native;
-using GTA.Math;
-using System.Drawing;
-using System.Reflection;
 using System.Windows.Forms;
-using System.IO;
 
 public class SpawnMP : Script
 {
@@ -1038,14 +1038,12 @@ public class SpawnMP : Script
         string[] lines = File.ReadAllLines("Scripts\\mp_blacklist.txt");
         List<string> blacklist_str = new List<string>();
 
-        foreach (string s in lines)
-        {
+        foreach (string s in lines) {
             if (s.IndexOf(symbol) == -1)
                 blacklist_str.Add(s);
         }
 
-        foreach (string hash in blacklist_str)
-        {
+        foreach (string hash in blacklist_str) {
             if (models_arena.Contains(hash))
                 models_arena.Remove(hash);
 
@@ -1176,52 +1174,45 @@ public class SpawnMP : Script
         string model_name = null;
         bool isEmpty;
         var random = new Random();
-        switch (index_db)
-        {
+        switch (index_db) {
             case arena:
                 isEmpty = !models_arena.Any();
-                if ((veh[index_db] == null && !isEmpty) || type == 1)
-                {
+                if ((veh[index_db] == null && !isEmpty) || type == 1) {
                     model_name = models_arena[random.Next(models_arena.Count)];
                 }
                 break;
 
             case boats:
                 isEmpty = !models_boats.Any();
-                if ((veh[index_db] == null && !isEmpty) || type == 1)
-                {
+                if ((veh[index_db] == null && !isEmpty) || type == 1) {
                     model_name = models_boats[random.Next(models_boats.Count)];
                 }
                 break;
 
             case cemetery:
                 isEmpty = !models_cemetery.Any();
-                if ((veh[index_db] == null && !isEmpty) || type == 1)
-                {
+                if ((veh[index_db] == null && !isEmpty) || type == 1) {
                     model_name = models_cemetery[random.Next(models_cemetery.Count)];
                 }
                 break;
 
             case cheburek:
                 isEmpty = !models_cheburek.Any();
-                if ((veh[index_db] == null && !isEmpty) || type == 1)
-                {
+                if ((veh[index_db] == null && !isEmpty) || type == 1) {
                     model_name = models_cheburek[random.Next(models_cheburek.Count)];
                 }
                 break;
 
             case cinema:
                 isEmpty = !models_cinema.Any();
-                if ((veh[index_db] == null && !isEmpty) || type == 1)
-                {
+                if ((veh[index_db] == null && !isEmpty) || type == 1) {
                     model_name = models_cinema[random.Next(models_cinema.Count)];
                 }
                 break;
 
             case cluckin:
                 isEmpty = !models_cluckin.Any();
-                if ((veh[index_db] == null && !isEmpty) || type == 1)
-                {
+                if ((veh[index_db] == null && !isEmpty) || type == 1) {
                     model_name = models_cluckin[random.Next(models_cluckin.Count)];
                 }
                 break;
@@ -1233,8 +1224,7 @@ public class SpawnMP : Script
             case compacts_5:
             case compacts_6:
                 isEmpty = !models_compacts.Any();
-                if ((veh[index_db] == null && !isEmpty) || type == 1)
-                {
+                if ((veh[index_db] == null && !isEmpty) || type == 1) {
                     model_name = models_compacts[random.Next(models_compacts.Count)];
                 }
                 break;
@@ -1247,8 +1237,7 @@ public class SpawnMP : Script
             case coupes_6:
             case coupes_7:
                 isEmpty = !models_coupes.Any();
-                if ((veh[index_db] == null && !isEmpty) || type == 1)
-                {
+                if ((veh[index_db] == null && !isEmpty) || type == 1) {
                     model_name = models_coupes[random.Next(models_coupes.Count)];
                 }
                 break;
@@ -1259,8 +1248,7 @@ public class SpawnMP : Script
             case cycles_4:
             case cycles_5:
                 isEmpty = !models_cycles.Any();
-                if ((veh[index_db] == null && !isEmpty) || type == 1)
-                {
+                if ((veh[index_db] == null && !isEmpty) || type == 1) {
                     model_name = models_cycles[random.Next(models_cycles.Count)];
                 }
                 break;
@@ -1271,24 +1259,21 @@ public class SpawnMP : Script
             case ghetto_4:
             case ghetto_5:
                 isEmpty = !models_ghetto.Any();
-                if ((veh[index_db] == null && !isEmpty) || type == 1)
-                {
+                if ((veh[index_db] == null && !isEmpty) || type == 1) {
                     model_name = models_ghetto[random.Next(models_ghetto.Count)];
                 }
                 break;
 
             case helicopter:
                 isEmpty = !models_helicopter.Any();
-                if ((veh[index_db] == null && !isEmpty) || type == 1)
-                {
+                if ((veh[index_db] == null && !isEmpty) || type == 1) {
                     model_name = models_helicopter[random.Next(models_helicopter.Count)];
                 }
                 break;
 
             case humanlabs:
                 isEmpty = !models_humanlabs.Any();
-                if ((veh[index_db] == null && !isEmpty) || type == 1)
-                {
+                if ((veh[index_db] == null && !isEmpty) || type == 1) {
                     model_name = models_humanlabs[random.Next(models_humanlabs.Count)];
                 }
                 break;
@@ -1298,93 +1283,80 @@ public class SpawnMP : Script
             case industrial_3:
             case industrial_4:
                 isEmpty = !models_industrial.Any();
-                if ((veh[index_db] == null && !isEmpty) || type == 1)
-                {
+                if ((veh[index_db] == null && !isEmpty) || type == 1) {
                     model_name = models_industrial[random.Next(models_industrial.Count)];
                 }
                 break;
 
             case karting:
                 isEmpty = !models_karting.Any();
-                if ((veh[index_db] == null && !isEmpty) || type == 1)
-                {
+                if ((veh[index_db] == null && !isEmpty) || type == 1) {
                     model_name = models_karting[random.Next(models_karting.Count)];
                 }
                 break;
 
             case vetir:
-                if (veh[index_db] == null && vetir_model != "Blocked")
-                {
+                if (veh[index_db] == null && vetir_model != "Blocked") {
                     model_name = models_karting[random.Next(models_karting.Count)];
                 }
                 break;
 
             case scarab:
-                if (veh[index_db] == null && scarab_model != "Blocked")
-                {
+                if (veh[index_db] == null && scarab_model != "Blocked") {
                     model_name = scarab_model;
                 }
                 break;
 
             case terrorbyte:
-                if (veh[index_db] == null && terrorbyte_model != "Blocked")
-                {
+                if (veh[index_db] == null && terrorbyte_model != "Blocked") {
                     model_name = terrorbyte_model;
                 }
                 break;
 
             case thruster:
-                if (veh[index_db] == null && thruster_model != "Blocked")
-                {
+                if (veh[index_db] == null && thruster_model != "Blocked") {
                     model_name = thruster_model;
                 }
                 break;
 
             case khanjari:
-                if (veh[index_db] == null && khanjari_model != "Blocked")
-                {
+                if (veh[index_db] == null && khanjari_model != "Blocked") {
                     model_name = khanjari_model;
                 }
                 break;
 
             case chernobog:
-                if (veh[index_db] == null && chernobog_model != "Blocked")
-                {
+                if (veh[index_db] == null && chernobog_model != "Blocked") {
                     model_name = chernobog_model;
                 }
                 break;
 
             case barrage:
-                if (veh[index_db] == null && barrage_model != "Blocked")
-                {
+                if (veh[index_db] == null && barrage_model != "Blocked") {
                     model_name = barrage_model;
                 }
                 break;
 
             case trailerLarge:
-                if (veh[index_db] == null && trailerLarge_model != "Blocked")
-                {
+                if (veh[index_db] == null && trailerLarge_model != "Blocked") {
                     model_name = trailerLarge_model;
                 }
                 break;
 
             case halfTrack:
-                if (veh[index_db] == null && halfTrack_model != "Blocked")
-                {
+                if (veh[index_db] == null && halfTrack_model != "Blocked") {
                     model_name = halfTrack_model;
                 }
                 break;
 
             case apc:
-                if (veh[index_db] == null && apc_model != "Blocked")
-                {
+                if (veh[index_db] == null && apc_model != "Blocked") {
                     model_name = apc_model;
                 }
                 break;
 
             case trailerSmall2:
-                if (veh[index_db] == null && trailerSmall2_model != "Blocked")
-                {
+                if (veh[index_db] == null && trailerSmall2_model != "Blocked") {
                     model_name = trailerSmall2_model;
                 }
                 break;
@@ -1392,53 +1364,46 @@ public class SpawnMP : Script
             case military_planes_1:
             case military_planes_2:
                 isEmpty = !models_military_planes.Any();
-                if ((veh[index_db] == null && !isEmpty) || type == 1)
-                {
+                if ((veh[index_db] == null && !isEmpty) || type == 1) {
                     model_name = models_military_planes[random.Next(models_military_planes.Count)];
                 }
                 break;
 
             case military_helicopters:
                 isEmpty = !models_military_helicopters.Any();
-                if ((veh[index_db] == null && !isEmpty) || type == 1)
-                {
+                if ((veh[index_db] == null && !isEmpty) || type == 1) {
                     model_name = models_military_helicopters[random.Next(models_military_helicopters.Count)];
                 }
                 break;
 
             case military_opressors:
                 isEmpty = !models_military_opressors.Any();
-                if ((veh[index_db] == null && !isEmpty) || type == 1)
-                {
+                if ((veh[index_db] == null && !isEmpty) || type == 1) {
                     model_name = models_military_opressors[random.Next(models_military_opressors.Count)];
                 }
                 break;
 
             case military_bikes:
                 isEmpty = !models_military_bikes.Any();
-                if ((veh[index_db] == null && !isEmpty) || type == 1)
-                {
+                if ((veh[index_db] == null && !isEmpty) || type == 1) {
                     model_name = models_military_bikes[random.Next(models_military_bikes.Count)];
                 }
                 break;
 
             case raiju:
-                if (veh[index_db] == null && raiju_model != "Blocked")
-                {
+                if (veh[index_db] == null && raiju_model != "Blocked") {
                     model_name = raiju_model;
                 }
                 break;
 
             case streamer216:
-                if (veh[index_db] == null && streamer216_model != "Blocked")
-                {
+                if (veh[index_db] == null && streamer216_model != "Blocked") {
                     model_name = streamer216_model;
                 }
                 break;
 
             case conada2:
-                if (veh[index_db] == null && conada2_model != "Blocked")
-                {
+                if (veh[index_db] == null && conada2_model != "Blocked") {
                     model_name = conada2_model;
                 }
                 break;
@@ -1450,8 +1415,7 @@ public class SpawnMP : Script
             case motorcycles_5:
             case motorcycles_6:
                 isEmpty = !models_motorcycles.Any();
-                if ((veh[index_db] == null && !isEmpty) || type == 1)
-                {
+                if ((veh[index_db] == null && !isEmpty) || type == 1) {
                     model_name = models_motorcycles[random.Next(models_motorcycles.Count)];
                 }
                 break;
@@ -1464,8 +1428,7 @@ public class SpawnMP : Script
             case muscle_6:
             case muscle_7:
                 isEmpty = !models_muscle.Any();
-                if ((veh[index_db] == null && !isEmpty) || type == 1)
-                {
+                if ((veh[index_db] == null && !isEmpty) || type == 1) {
                     model_name = models_muscle[random.Next(models_muscle.Count)];
                 }
                 break;
@@ -1475,32 +1438,28 @@ public class SpawnMP : Script
             case offroad_3:
             case offroad_4:
                 isEmpty = !models_offroad.Any();
-                if ((veh[index_db] == null && !isEmpty) || type == 1)
-                {
+                if ((veh[index_db] == null && !isEmpty) || type == 1) {
                     model_name = models_offroad[random.Next(models_offroad.Count)];
                 }
                 break;
 
             case openwheel:
                 isEmpty = !models_openwheel.Any();
-                if ((veh[index_db] == null && !isEmpty) || type == 1)
-                {
+                if ((veh[index_db] == null && !isEmpty) || type == 1) {
                     model_name = models_openwheel[random.Next(models_openwheel.Count)];
                 }
                 break;
 
             case beach:
                 isEmpty = !models_beach.Any();
-                if ((veh[index_db] == null && !isEmpty) || type == 1)
-                {
+                if ((veh[index_db] == null && !isEmpty) || type == 1) {
                     model_name = models_beach[random.Next(models_beach.Count)];
                 }
                 break;
 
             case planes:
                 isEmpty = !models_planes.Any();
-                if ((veh[index_db] == null && !isEmpty) || type == 1)
-                {
+                if ((veh[index_db] == null && !isEmpty) || type == 1) {
                     model_name = models_planes[random.Next(models_planes.Count)];
                 }
                 break;
@@ -1511,8 +1470,7 @@ public class SpawnMP : Script
             case police_4:
             case police_5:
                 isEmpty = !models_police.Any();
-                if ((veh[index_db] == null && !isEmpty) || type == 1)
-                {
+                if ((veh[index_db] == null && !isEmpty) || type == 1) {
                     model_name = models_police[random.Next(models_police.Count)];
                 }
                 break;
@@ -1525,16 +1483,14 @@ public class SpawnMP : Script
             case sedans_6:
             case sedans_7:
                 isEmpty = !models_sedans.Any();
-                if ((veh[index_db] == null && !isEmpty) || type == 1)
-                {
+                if ((veh[index_db] == null && !isEmpty) || type == 1) {
                     model_name = models_sedans[random.Next(models_sedans.Count)];
                 }
                 break;
 
             case slawmantruck:
                 isEmpty = !models_slawmantruck.Any();
-                if ((veh[index_db] == null && !isEmpty) || type == 1)
-                {
+                if ((veh[index_db] == null && !isEmpty) || type == 1) {
                     model_name = models_slawmantruck[random.Next(models_slawmantruck.Count)];
                 }
                 break;
@@ -1548,16 +1504,14 @@ public class SpawnMP : Script
             case sportclassic_7:
             case sportclassic_8:
                 isEmpty = !models_sportclassic.Any();
-                if ((veh[index_db] == null && !isEmpty) || type == 1)
-                {
+                if ((veh[index_db] == null && !isEmpty) || type == 1) {
                     model_name = models_sportclassic[random.Next(models_sportclassic.Count)];
                 }
                 break;
 
             case submarine:
                 isEmpty = !models_submarine.Any();
-                if ((veh[index_db] == null && !isEmpty) || type == 1)
-                {
+                if ((veh[index_db] == null && !isEmpty) || type == 1) {
                     model_name = models_submarine[random.Next(models_submarine.Count)];
                 }
                 break;
@@ -1570,8 +1524,7 @@ public class SpawnMP : Script
             case supers_6:
             case supers_7:
                 isEmpty = !models_supers.Any();
-                if ((veh[index_db] == null && !isEmpty) || type == 1)
-                {
+                if ((veh[index_db] == null && !isEmpty) || type == 1) {
                     model_name = models_supers[random.Next(models_supers.Count)];
                 }
                 break;
@@ -1585,8 +1538,7 @@ public class SpawnMP : Script
             case suvs_7:
             case suvs_8:
                 isEmpty = !models_suvs.Any();
-                if ((veh[index_db] == null && !isEmpty) || type == 1)
-                {
+                if ((veh[index_db] == null && !isEmpty) || type == 1) {
                     model_name = models_suvs[random.Next(models_suvs.Count)];
                 }
                 break;
@@ -1597,8 +1549,7 @@ public class SpawnMP : Script
             case towtruck_4:
             case towtruck_5:
                 isEmpty = !models_towtruck.Any();
-                if ((veh[index_db] == null && !isEmpty) || type == 1)
-                {
+                if ((veh[index_db] == null && !isEmpty) || type == 1) {
                     model_name = models_towtruck[random.Next(models_towtruck.Count)];
                 }
                 break;
@@ -1609,16 +1560,14 @@ public class SpawnMP : Script
             case tuners_4:
             case tuners_5:
                 isEmpty = !models_tuners.Any();
-                if ((veh[index_db] == null && !isEmpty) || type == 1)
-                {
+                if ((veh[index_db] == null && !isEmpty) || type == 1) {
                     model_name = models_tuners[random.Next(models_tuners.Count)];
                 }
                 break;
 
             case valentine:
                 isEmpty = !models_valentine.Any();
-                if ((veh[index_db] == null && !isEmpty) || type == 1)
-                {
+                if ((veh[index_db] == null && !isEmpty) || type == 1) {
                     model_name = models_valentine[random.Next(models_valentine.Count)];
                 }
                 break;
@@ -1637,24 +1586,21 @@ public class SpawnMP : Script
             case vans_12:
             case vans_13:
                 isEmpty = !models_vans.Any();
-                if ((veh[index_db] == null && !isEmpty) || type == 1)
-                {
+                if ((veh[index_db] == null && !isEmpty) || type == 1) {
                     model_name = models_vans[random.Next(models_vans.Count)];
                 }
                 break;
 
             case wastelander:
                 isEmpty = !models_wastelander.Any();
-                if ((veh[index_db] == null && !isEmpty) || type == 1)
-                {
+                if ((veh[index_db] == null && !isEmpty) || type == 1) {
                     model_name = models_wastelander[random.Next(models_wastelander.Count)];
                 }
                 break;
 
             case weaponboats:
                 isEmpty = !models_weaponboats.Any();
-                if ((veh[index_db] == null && !isEmpty) || type == 1)
-                {
+                if ((veh[index_db] == null && !isEmpty) || type == 1) {
                     model_name = models_weaponboats[random.Next(models_weaponboats.Count)];
                 }
                 break;
@@ -1664,20 +1610,18 @@ public class SpawnMP : Script
 
     void SetNumberPlate(Vehicle car, int mode, int index)
     {
-        if (mode == 1)
-        {
+        if (mode == 1) {
             Function.Call(Hash.SET_VEHICLE_NUMBER_PLATE_TEXT_INDEX, car, index);
         }
     }
 
     public void SetSpawnLocation(Vehicle car, int min, int max)
     {
-        car.PlaceOnGround(); 
+        car.PlaceOnGround();
         float AroundDistance = (float)GetRandomNumber(min, max);
-        car.Position = World.GetNextPositionOnStreet(Game.Player.Character.Position.Around(AroundDistance)); 
+        car.Position = World.GetNextPositionOnStreet(Game.Player.Character.Position.Around(AroundDistance));
 
-        while (car.IsOnScreen)
-        {
+        while (car.IsOnScreen) {
             Wait(10);
             AroundDistance += 5f;
             car.Position = World.GetNextPositionOnStreet(Game.Player.Character.Position.Around(AroundDistance));
@@ -1686,8 +1630,7 @@ public class SpawnMP : Script
         OutputArgument outArgA = new OutputArgument();
         OutputArgument outArgB = new OutputArgument();
 
-        if (Function.Call<bool>(Hash.GET_CLOSEST_VEHICLE_NODE_WITH_HEADING, car.Position.X, car.Position.Y, car.Position.Z, outArgA, outArgB, 1, 1077936128, 0))
-        {
+        if (Function.Call<bool>(Hash.GET_CLOSEST_VEHICLE_NODE_WITH_HEADING, car.Position.X, car.Position.Y, car.Position.Z, outArgA, outArgB, 1, 1077936128, 0)) {
             car.Heading = outArgB.GetResult<float>();
         }
 
@@ -1698,13 +1641,10 @@ public class SpawnMP : Script
     {
         var veh_model = new Model(hash);
         veh_model.Request(500);
-        if (!veh_model.IsValid)
-        {
+        if (!veh_model.IsValid) {
             GTA.UI.Notification.Show($"{hash} is invalid model! Please add this model to mp_blacklist.txt");
             return null;
-        }
-        else
-        {
+        } else {
             while (!veh_model.IsLoaded) Script.Wait(100);
             car = World.CreateVehicle(veh_model, pos, heading);
             return car;
@@ -1728,12 +1668,9 @@ public class SpawnMP : Script
         if (max <= 1)
             return 0;
 
-        try
-        {
+        try {
             return random.Next(0, max);
-        }
-        catch
-        {
+        } catch {
             return 0;
         }
     }
@@ -1776,10 +1713,8 @@ public class SpawnMP : Script
         };
         bool notInArray = true;
 
-        for (int i = 0; i < veh_types.Length && notInArray; i++)
-        {
-            if (type == veh_types[i])
-            {
+        for (int i = 0; i < veh_types.Length && notInArray; i++) {
+            if (type == veh_types[i]) {
                 notInArray = false;
             }
         }
@@ -1788,14 +1723,12 @@ public class SpawnMP : Script
 
     void OnAborded(object sender, EventArgs e)
     {
-        foreach (Blip mark in marker)
-        {
+        foreach (Blip mark in marker) {
             if (mark != null && mark.Exists())
                 mark.Delete();
         }
 
-        foreach (Vehicle car in veh)
-        {
+        foreach (Vehicle car in veh) {
             if (car != null && car.Exists())
                 car.Delete();
         }
@@ -1804,20 +1737,15 @@ public class SpawnMP : Script
     void OnTick(object sender, EventArgs e)
     {
         int index_db = 0;
-        foreach (Vector3 veh_coords in coords)
-        {
+        foreach (Vector3 veh_coords in coords) {
             var position = Game.Player.Character.GetOffsetPosition(new Vector3(0, 0, 0));
-            if (Function.Call<float>(Hash.GET_DISTANCE_BETWEEN_COORDS, veh_coords.X, veh_coords.Y, veh_coords.Z, position.X, position.Y, position.Z, 0) < 300)
-            {
+            if (Function.Call<float>(Hash.GET_DISTANCE_BETWEEN_COORDS, veh_coords.X, veh_coords.Y, veh_coords.Z, position.X, position.Y, position.Z, 0) < 300) {
                 //spawn in parking lots
                 string model_name = GenerateVehicleModelName(index_db, 0);
-                if (model_name != null)
-                {
+                if (model_name != null) {
                     veh[index_db] = CreateNewVehicle(model_name, coords[index_db], heading[index_db]);
-                    if (veh[index_db] != null)
-                    {
-                        if (blip_config == 1)
-                        {
+                    if (veh[index_db] != null) {
+                        if (blip_config == 1) {
                             Blip mark = CreateMarkerAboveCar(veh[index_db]);
                             marker.Add(mark);
                         }
@@ -1825,8 +1753,7 @@ public class SpawnMP : Script
                 }
 
                 //spawn in traffic
-                if ((Game.GameTime > cooldown + 10000 || cooldown == 0) && IsIndexCanSpawned(index_db))
-                {
+                if ((Game.GameTime > cooldown + 10000 || cooldown == 0) && IsIndexCanSpawned(index_db)) {
                     model_name = GenerateVehicleModelName(index_db, 1);
                     street_veh[index_db] = CreateNewVehicle(model_name, Vector3.Zero, 0.0f);
                     street_veh[index_db].IsVisible = false;
@@ -1843,10 +1770,8 @@ public class SpawnMP : Script
 
         //Player in car
         index_db = 0;
-        foreach (Vehicle car in veh)
-        {
-            if (car != null && car.Exists() && Function.Call<bool>(Hash.IS_PED_IN_VEHICLE, Game.Player.Character, car, false))
-            {
+        foreach (Vehicle car in veh) {
+            if (car != null && car.Exists() && Function.Call<bool>(Hash.IS_PED_IN_VEHICLE, Game.Player.Character, car, false)) {
                 Blip mark = Function.Call<Blip>(Hash.GET_BLIP_FROM_ENTITY, car);
                 if (mark != null && mark.Exists())
                     mark.Delete();
@@ -1855,10 +1780,8 @@ public class SpawnMP : Script
             index_db++;
         }
         index_db = 0;
-        foreach (Vehicle car in street_veh)
-        {
-            if (car != null && car.Exists() && Function.Call<bool>(Hash.IS_PED_IN_VEHICLE, Game.Player.Character, car, false))
-            {
+        foreach (Vehicle car in street_veh) {
+            if (car != null && car.Exists() && Function.Call<bool>(Hash.IS_PED_IN_VEHICLE, Game.Player.Character, car, false)) {
                 car.MarkAsNoLongerNeeded();
                 street_veh[index_db] = null;
             }
@@ -1867,23 +1790,18 @@ public class SpawnMP : Script
 
         //Delete Vehicle
         index_db = 0;
-        foreach (Vehicle car in street_veh)
-        {
-            if (car != null && car.Exists() && !Function.Call<bool>(Hash.IS_PED_IN_VEHICLE, Game.Player.Character, car, false) && Function.Call<float>(Hash.GET_DISTANCE_BETWEEN_COORDS, car.Position.X, car.Position.Y, car.Position.Z, Game.Player.Character.Position.X, Game.Player.Character.Position.Y, Game.Player.Character.Position.Z, 0) > 400)
-            {
+        foreach (Vehicle car in street_veh) {
+            if (car != null && car.Exists() && !Function.Call<bool>(Hash.IS_PED_IN_VEHICLE, Game.Player.Character, car, false) && Function.Call<float>(Hash.GET_DISTANCE_BETWEEN_COORDS, car.Position.X, car.Position.Y, car.Position.Z, Game.Player.Character.Position.X, Game.Player.Character.Position.Y, Game.Player.Character.Position.Z, 0) > 400) {
                 car.Delete();
                 street_veh[index_db] = null;
             }
             index_db++;
         }
         index_db = 0;
-        foreach (Vector3 veh_coords in coords)
-        {
+        foreach (Vector3 veh_coords in coords) {
             var position = Game.Player.Character.GetOffsetPosition(new Vector3(0, 0, 0));
-            if (Function.Call<float>(Hash.GET_DISTANCE_BETWEEN_COORDS, veh_coords.X, veh_coords.Y, veh_coords.Z, position.X, position.Y, position.Z, 0) > 300)
-            {
-                if (veh[index_db] != null && veh[index_db].Exists() && !Function.Call<bool>(Hash.IS_PED_SITTING_IN_VEHICLE, Game.Player.Character, veh[index_db]))
-                {
+            if (Function.Call<float>(Hash.GET_DISTANCE_BETWEEN_COORDS, veh_coords.X, veh_coords.Y, veh_coords.Z, position.X, position.Y, position.Z, 0) > 300) {
+                if (veh[index_db] != null && veh[index_db].Exists() && !Function.Call<bool>(Hash.IS_PED_SITTING_IN_VEHICLE, Game.Player.Character, veh[index_db])) {
                     Blip mark = Function.Call<Blip>(Hash.GET_BLIP_FROM_ENTITY, veh[index_db]);
                     if (mark != null && mark.Exists())
                         mark.Delete();
@@ -1897,15 +1815,11 @@ public class SpawnMP : Script
 
     private void onkeyup(object sender, KeyEventArgs e)
     {
-        if (e.KeyCode == Keys.N)
-        {
+        if (e.KeyCode == Keys.N) {
             Game.Player.Character.Position = coords[debug_releport];
-            if (coords.Count - 1 > debug_releport)
-            {
+            if (coords.Count - 1 > debug_releport) {
                 debug_releport++;
-            }
-            else
-            {
+            } else {
                 debug_releport = 0;
             }
         }
