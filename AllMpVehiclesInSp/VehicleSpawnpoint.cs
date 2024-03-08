@@ -1,4 +1,4 @@
-using GTA;
+﻿using GTA;
 using GTA.Math;
 using GTA.Native;
 using System;
@@ -46,6 +46,10 @@ public class VehicleSpawnpoint : Utilities.IPosition3, IDisposable
             vehicle = null;
             return false;
         }
+        if (World.GetClosestVehicle(Position, GetModelSmallestDimesion(Model)) != null) {
+            vehicle = null;
+            return false;
+        }
         Vehicle = World.CreateVehicle(Model, Position, Heading);
         Vehicle.PlaceOnGround();
         vehicle = Vehicle;
@@ -57,7 +61,7 @@ public class VehicleSpawnpoint : Utilities.IPosition3, IDisposable
         if (!(Vehicle?.Exists() ?? false)) {
             return false;
         }
-        Blip = Function.Call<Blip>(GTA.Native.Hash.ADD_BLIP_FOR_ENTITY, Vehicle);
+        Blip = Function.Call<Blip>(Hash.ADD_BLIP_FOR_ENTITY, Vehicle);
         Blip.Name = BlipName;
         Blip.DisplayType = BlipDisplayType.MiniMapOnly;
         Blip.Sprite = BlipSprite.Standard;
@@ -92,5 +96,12 @@ public class VehicleSpawnpoint : Utilities.IPosition3, IDisposable
         Model = default;
         Vehicle = null;
         Blip = null;
+    }
+
+    private static float GetModelSmallestDimesion(in Model model)
+    {
+        var (mins, maxs) = model.Dimensions;
+        var range = maxs - mins;
+        return Math.Min(range.X, range.Y);
     }
 }
