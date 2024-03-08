@@ -1,4 +1,4 @@
-﻿using GTA;
+using GTA;
 using GTA.Math;
 using GTA.Native;
 using System;
@@ -16,6 +16,8 @@ public class VehicleSpawnpoint : Utilities.IPosition3, IDisposable
     public Vehicle Vehicle = null;
     public Blip Blip = null;
     public bool WasTakenByPlayer = false;
+
+    public bool IsModelAvailable => Model != default && Model.IsLoaded;
 
     public VehicleSpawnpoint(in VehicleSpawnpointDesc description)
     {
@@ -40,7 +42,7 @@ public class VehicleSpawnpoint : Utilities.IPosition3, IDisposable
 
     public bool TrySpawnVehicle(out Vehicle vehicle)
     {
-        if (Model == default || !Model.IsLoaded) {
+        if (!IsModelAvailable) {
             vehicle = null;
             return false;
         }
