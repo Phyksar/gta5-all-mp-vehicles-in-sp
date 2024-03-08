@@ -10,8 +10,9 @@ public class MultiplayerVehiclesScript : Script
 {
     private const string ParkedVehiclesSettingsSection = "Parking";
     private const string DebugSettingsSection = "Debug";
-    private const float SpawnpointActivationRadius = 300.0f;
-    private const float SpawnpointDeactivationRadius = SpawnpointActivationRadius + 20.0f;
+    private const float MinimumSpawnpointActivationRadius = 200.0f;
+    private const float MaximumSpawnpointActivationRadius = 300.0f;
+    private const float SpawnpointDeactivationRadius = MaximumSpawnpointActivationRadius + 20.0f;
     private const int SpawnTimeout = 200;
     private const double PercentageToRatio = 1.0e-2;
 
@@ -71,7 +72,7 @@ public class MultiplayerVehiclesScript : Script
 
         var benchmark = new Utilities.Benchmark(new Stopwatch());
         var elapsedTime = benchmark.Measure(() => {
-            SpawnpointSearchQuery = SpawnpointCollection.CreateSearchQuery(SpawnpointActivationRadius);
+            SpawnpointSearchQuery = SpawnpointCollection.CreateSearchQuery(MaximumSpawnpointActivationRadius);
         });
         var blockMap = SpawnpointSearchQuery.BlockMap;
         Log.DebugMessage(
@@ -93,7 +94,7 @@ public class MultiplayerVehiclesScript : Script
     {
         if (Game.GameTime > NextSpawnTime) {
             var playerPosition = Game.Player.Character.Position;
-            SpawnParkedVehicles(playerPosition, SpawnpointSearchQuery);
+            SpawnParkedVehicles(playerPosition, SpawnpointSearchQuery, MinimumSpawnpointActivationRadius);
             DespawnParkedVehicles(playerPosition, SpawnpointDeactivationRadius);
             NextSpawnTime = Game.GameTime + SpawnTimeout;
         }
@@ -126,7 +127,10 @@ public class MultiplayerVehiclesScript : Script
         }
     }
 
-    private void SpawnParkedVehicles(in Vector3 position, VehicleSpawnpointCollection.SearchQuery searchQuery)
+    private void SpawnParkedVehicles(
+        in Vector3 position,
+        VehicleSpawnpointCollection.SearchQuery searchQuery,
+        float minimumRadius)
     {
         var foundSpawnpoints = new List<VehicleSpawnpoint>(SpawnpointCollection.Count);
         searchQuery.FindInSphere(position, foundSpawnpoints);
@@ -143,17 +147,22 @@ public class MultiplayerVehiclesScript : Script
             }
         }
         foreach (var spawnpoint in foundSpawnpoints) {
-            if (spawnpoint.Vehicle == null) {
-                if (spawnpoint.TrySpawnVehicle(out var vehicle)) {
-                    SpawnedVehicleSpawnpoints.Add(vehicle, spawnpoint);
-                    if (ShowBlipsForParkedVehicles) {
-                        spawnpoint.AddBlipForVehicle();
-                    }
-                    if (LockDoorsForParkedVehicles) {
-                        vehicle.LockStatus = VehicleLockStatus.CanBeBrokenInto;
-                        vehicle.IsAlarmSet = Random.NextDouble() < AlarmRateForParkedVehicles;
-                    }
-                }
+            if (spawnpoint.Vehicle != null || !spawnpoint.IsModelAvailable) {
+                continue;
+            }
+            if (position.DistanceToSquared(spawnpoint.Position) < minimumRadius * minimumRadius) {
+                continue;
+            }
+            if (!spawnpoint.TrySpawnVehicle(out var vehicle)) {
+                continue;
+            }
+            SpawnedVehicleSpawnpoints.Add(vehicle, spawnpoint);
+            if (ShowBlipsForParkedVehicles) {
+                spawnpoint.AddBlipForVehicle();
+            }
+            if (LockDoorsForParkedVehicles) {
+                vehicle.LockStatus = VehicleLockStatus.CanBeBrokenInto;
+                vehicle.IsAlarmSet = Random.NextDouble() < AlarmRateForParkedVehicles;
             }
         }
     }
