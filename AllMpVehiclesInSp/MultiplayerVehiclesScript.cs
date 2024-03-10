@@ -48,14 +48,14 @@ public class MultiplayerVehiclesScript : Script
             + $"{invalidVehicleModels.Count} invalid vehicles excluded"
         );
 
-        var minSpawnRadius = Settings.GetValue(DebugSettingsSection, "MinSpawnRadius", 300.0f);
-        var maxSpawnRadius = Settings.GetValue(DebugSettingsSection, "MaxSpawnRadius", 500.0f);
-        var despawnRadius = Settings.GetValue(DebugSettingsSection, "DespawnRadius", maxSpawnRadius + 20.0f);
+        var minSpawnDistance = Settings.GetValue(DebugSettingsSection, "MinSpawnDistance", 300.0f);
+        var maxSpawnDistance = Settings.GetValue(DebugSettingsSection, "MaxSpawnDistance", 500.0f);
+        var despawnDistance = Settings.GetValue(DebugSettingsSection, "DespawnDistance", maxSpawnDistance + 20.0f);
         var benchmark = new Benchmark(new Stopwatch());
         var spawnpointCollection = new VehicleSpawnpointCollection();
         spawnpointCollection.AddRange(VehicleSpawnpointList.All());
         var elapsedTime = benchmark.Measure(out var parkedSpawnpointSearchQuery, () => {
-            return spawnpointCollection.CreateSearchQuery(maxSpawnRadius);
+            return spawnpointCollection.CreateSearchQuery(maxSpawnDistance);
         });
         LogBlockMapStatistics(parkedSpawnpointSearchQuery.BlockMap, elapsedTime);
 
@@ -64,8 +64,8 @@ public class MultiplayerVehiclesScript : Script
             random,
             parkedSpawnpointSearchQuery,
             groupedVehicleModels,
-            minSpawnRadius,
-            despawnRadius,
+            minSpawnDistance,
+            despawnDistance,
             Settings.GetValue(ParkingSettingsSection, "ShowBlips", true),
             Settings.GetValue(ParkingSettingsSection, "LockDoors", true),
             Settings.GetValue(ParkingSettingsSection, "AlarmRatePercentage", 80.0f) * PercentageToRatio

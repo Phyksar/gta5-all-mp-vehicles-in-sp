@@ -12,8 +12,8 @@ public class ParkedVehicleSpawner : VehicleSpawner, IDisposable
     private Dictionary<int, VehicleSpawnpoint> SpawnedVehicleSpawnpoints;
     private Vehicle LastPlayerVehicle;
 
-    private float MinSpawnRadius;
-    private float DespawnRadius;
+    private float MinSpawnDistance;
+    private float DespawnDistance;
     private bool AddBlips;
     private bool LockDoors;
     private float AlarmRate;
@@ -22,8 +22,8 @@ public class ParkedVehicleSpawner : VehicleSpawner, IDisposable
         Random random,
         ISearchQuery<VehicleSpawnpoint> spawnpointSearchQuery,
         IReadOnlyDictionary<VehicleGroup, string[]> groupedVehicleModels,
-        float minSpawnRadius,
-        float despawnRadius,
+        float minSpawnDistance,
+        float despawnDistance,
         bool addBlips,
         bool lockDoors,
         float alarmRate)
@@ -33,8 +33,8 @@ public class ParkedVehicleSpawner : VehicleSpawner, IDisposable
         GroupedVehicleModels = groupedVehicleModels;
         SpawnedVehicleSpawnpoints = new Dictionary<int, VehicleSpawnpoint>();
         LastPlayerVehicle = null;
-        MinSpawnRadius = minSpawnRadius;
-        DespawnRadius = despawnRadius;
+        MinSpawnDistance = minSpawnDistance;
+        DespawnDistance = despawnDistance;
         AddBlips = addBlips;
         LockDoors = lockDoors;
         AlarmRate = alarmRate;
@@ -65,12 +65,12 @@ public class ParkedVehicleSpawner : VehicleSpawner, IDisposable
             spawnpoint.RequestModel(modelName);
             ScriptLog.DebugMessage($"Model {modelName} requested for spawnoint 0x{spawnpoint.GetHashCode():x8}");
         }
-        var minSpawnRadiusSquared = MinSpawnRadius * MinSpawnRadius;
+        var minSpawnDistanceSquared = MinSpawnDistance * MinSpawnDistance;
         foreach (var spawnpoint in spawnpoints) {
             if (spawnpoint.Vehicle != null || !spawnpoint.IsModelAvailable) {
                 continue;
             }
-            if (position.DistanceToSquared(spawnpoint.Position) < minSpawnRadiusSquared) {
+            if (position.DistanceToSquared(spawnpoint.Position) < minSpawnDistanceSquared) {
                 continue;
             }
             var vehicle = TrySpawnVehicle(spawnpoint.Model, spawnpoint.Position, spawnpoint.Heading);
@@ -97,9 +97,9 @@ public class ParkedVehicleSpawner : VehicleSpawner, IDisposable
 
     public void DespawnVehicles(in Vector3 position)
     {
-        var radiusSquared = DespawnRadius * DespawnRadius;
+        var distanceSquared = DespawnDistance * DespawnDistance;
         foreach (var pair in SpawnedVehicleSpawnpoints.ToArray()) {
-            if (position.DistanceToSquared(pair.Value.Position) > radiusSquared) {
+            if (position.DistanceToSquared(pair.Value.Position) > distanceSquared) {
                 pair.Value.DespawnVehicle();
                 SpawnedVehicleSpawnpoints.Remove(pair.Key);
             }
