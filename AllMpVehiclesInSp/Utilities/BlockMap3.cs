@@ -13,8 +13,8 @@ namespace Utilities
         public int SegmentsZ { get; private set; }
 
         public Vector3 SegmentSize { get; private set; }
-        public int MinimumSegmentDensity { get; private set; }
-        public int MaximumSegmentDensity { get; private set; }
+        public int MinSegmentDensity { get; private set; }
+        public int MaxSegmentDensity { get; private set; }
 
         private int LastSegmentX;
         private int LastSegmentY;
@@ -34,8 +34,8 @@ namespace Utilities
             SegmentsY = segmentsY;
             SegmentsZ = segmentsZ;
             SegmentSize = new Vector3(range.X / segmentsX, range.Y / segmentsY, range.Z / segmentsZ);
-            MinimumSegmentDensity = 0;
-            MaximumSegmentDensity = 0;
+            MinSegmentDensity = 0;
+            MaxSegmentDensity = 0;
             LastSegmentX = segmentsX - 1;
             LastSegmentY = segmentsY - 1;
             LastSegmentZ = segmentsZ - 1;
@@ -77,8 +77,8 @@ namespace Utilities
                 maxSegmentElements = Math.Max(segmentLengths[segmentIndex], maxSegmentElements);
             }
             Segments = segments;
-            MinimumSegmentDensity = minSegmentElements;
-            MaximumSegmentDensity = maxSegmentElements;
+            MinSegmentDensity = minSegmentElements;
+            MaxSegmentDensity = maxSegmentElements;
         }
 
         public int IndexPosition(in Vector3 position)

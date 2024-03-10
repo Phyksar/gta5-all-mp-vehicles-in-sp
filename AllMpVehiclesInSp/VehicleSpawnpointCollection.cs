@@ -1,5 +1,6 @@
 ﻿using GTA.Math;
 using System.Collections.Generic;
+using Utilities;
 
 public class VehicleSpawnpointCollection
 {
@@ -48,11 +49,11 @@ public class VehicleSpawnpointCollection
         }
     }
 
-    public class SearchQuery
+    public class SearchQuery : ISearchQuery<VehicleSpawnpoint>
     {
         private float Radius;
 
-        public Utilities.BlockMap3<VehicleSpawnpoint> BlockMap { get; private set; }
+        public BlockMap3<VehicleSpawnpoint> BlockMap { get; private set; }
 
         public SearchQuery(
             VehicleSpawnpoint[] spawnpoints,
@@ -64,17 +65,20 @@ public class VehicleSpawnpointCollection
             int segmentsZ)
         {
             Radius = radius;
-            BlockMap = new Utilities.BlockMap3<VehicleSpawnpoint>(mins, maxs, segmentsX, segmentsY, segmentsZ);
+            BlockMap = new BlockMap3<VehicleSpawnpoint>(mins, maxs, segmentsX, segmentsY, segmentsZ);
             BlockMap.Build(spawnpoints, BlockMap.SegmentSize);
         }
 
-        public void FindInSphere(in Vector3 position, in List<VehicleSpawnpoint> spawnpointList)
+        public VehicleSpawnpoint[] FindInSphere(in Vector3 center)
         {
-            foreach (var element in BlockMap[position]) {
-                if (element.Position.DistanceToSquared(position) < Radius * Radius) {
+            var radiusSquared = Radius * Radius;
+            var spawnpointList = new List<VehicleSpawnpoint>();
+            foreach (var element in BlockMap[center]) {
+                if (center.DistanceToSquared(element.Position) < radiusSquared) {
                     spawnpointList.Add(element);
                 }
             }
+            return spawnpointList.ToArray();
         }
     }
 

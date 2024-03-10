@@ -12,7 +12,7 @@ public static class ArrayEx
     public static T Random<T>(Random random, T[] elements)
     {
         if (elements.Length == 0) {
-            return default;
+            throw new IndexOutOfRangeException("array is empty");
         }
         return elements[random.Next(elements.Length)];
     }

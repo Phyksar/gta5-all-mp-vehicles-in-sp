@@ -4,18 +4,17 @@ using System.IO;
 
 namespace Utilities
 {
-    public class ScriptLog : IDisposable
+    public class LogFile : IDisposable
     {
         private const int InvalidStringIndex = -1;
+
+        public bool EnableDebugLogging;
 
         private FileStream WriteStream;
         private StreamWriter StreamWriter;
 
-        public bool EnableDebugLogging { get; set; }
-
-        public ScriptLog(string filename, bool enableDebugLogging = false)
+        public LogFile(string filename)
         {
-            EnableDebugLogging = enableDebugLogging;
             try {
                 WriteStream = new FileStream(filename, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
             } catch (IOException) {
@@ -85,8 +84,8 @@ namespace Utilities
             if (messageIndex < message.Length) {
                 buffer += message.Substring(messageIndex);
             }
-            StreamWriter.WriteLineAsync(buffer);
-            StreamWriter.FlushAsync();
+            StreamWriter.WriteLine(buffer);
+            StreamWriter.Flush();
         }
     }
 }

@@ -1,23 +1,19 @@
 ﻿using GTA;
 using GTA.Math;
-using GTA.Native;
 using System;
+using Utilities;
 
-public class VehicleSpawnpoint : Utilities.IPosition3, IDisposable
+public class VehicleSpawnpoint : IPosition3, IDisposable
 {
-    private const string BlipName = "Unique Vehicle";
-    private const float BlipScale = 0.75f;
-
     public Vector3 Position { get; private set; }
     public float Heading { get; private set; }
     public VehicleGroup GroupId { get; private set; }
 
     public Model Model = default;
     public Vehicle Vehicle = null;
-    public Blip Blip = null;
     public bool WasTakenByPlayer = false;
 
-    public bool IsModelAvailable => Model != default && Model.IsLoaded;
+    public bool IsModelAvailable => Model != default && Model.IsValid && Model.IsLoaded;
 
     public VehicleSpawnpoint(in VehicleSpawnpointDesc description)
     {
@@ -40,62 +36,25 @@ public class VehicleSpawnpoint : Utilities.IPosition3, IDisposable
         Model.Request();
     }
 
-    public bool TrySpawnVehicle(out Vehicle vehicle)
-    {
-        if (!IsModelAvailable) {
-            vehicle = null;
-            return false;
-        }
-        if (World.GetClosestVehicle(Position, GetModelSmallestDimesion(Model)) != null) {
-            vehicle = null;
-            return false;
-        }
-        Vehicle = World.CreateVehicle(Model, Position, Heading);
-        Vehicle.PlaceOnGround();
-        vehicle = Vehicle;
-        return true;
-    }
-
-    public bool AddBlipForVehicle()
-    {
-        if (!(Vehicle?.Exists() ?? false)) {
-            return false;
-        }
-        Blip = Function.Call<Blip>(Hash.ADD_BLIP_FOR_ENTITY, Vehicle);
-        Blip.Name = BlipName;
-        Blip.DisplayType = BlipDisplayType.MiniMapOnly;
-        Blip.Sprite = BlipSprite.Standard;
-        Blip.Scale = BlipScale;
-        Blip.Color = BlipColor.WhiteNotPure;
-        Blip.IsShortRange = true;
-        return true;
-    }
-
     public void MarkAsTakenByPlayer()
     {
-        if (Vehicle?.Exists() ?? false) {
-            Vehicle.MarkAsNoLongerNeeded();
-        }
-        if (Blip?.Exists() ?? false) {
-            Blip.Delete();
-        }
-        Blip = null;
         WasTakenByPlayer = true;
     }
 
     public void DespawnVehicle()
     {
         if (!WasTakenByPlayer && (Vehicle?.Exists() ?? false)) {
-            Vehicle.Delete();
-        }
-        WasTakenByPlayer = false;
-        if (Blip?.Exists() ?? false) {
-            Blip.Delete();
+            Vehicle.MarkAsNoLongerNeeded();
         }
         Model.MarkAsNoLongerNeeded();
         Model = default;
         Vehicle = null;
-        Blip = null;
+        WasTakenByPlayer = false;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Position, Heading, GroupId);
     }
 
     private static float GetModelSmallestDimesion(in Model model)
