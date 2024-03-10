@@ -1,34 +1,19 @@
 ﻿using GTA;
-using GTA.Math;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using Utilities;
 
 public class MultiplayerVehiclesScript : Script
 {
-    private const string ParkedVehiclesSettingsSection = "Parking";
+    private const string ParkingSettingsSection = "Parking";
     private const string DebugSettingsSection = "Debug";
-    private const float MinimumSpawnpointActivationRadius = 200.0f;
-    private const float MaximumSpawnpointActivationRadius = 300.0f;
-    private const float SpawnpointDeactivationRadius = MaximumSpawnpointActivationRadius + 20.0f;
-    private const int SpawnTimeout = 200;
-    private const double PercentageToRatio = 1.0e-2;
 
-    private Random Random;
-    private Utilities.ScriptLog Log;
-    private Dictionary<VehicleGroup, string[]> GroupedVehicleModels;
-    private VehicleSpawnpointCollection SpawnpointCollection;
-    private VehicleSpawnpointCollection.SearchQuery SpawnpointSearchQuery;
-    private Dictionary<Vehicle, VehicleSpawnpoint> SpawnedVehicleSpawnpoints;
+    private const float SpawnRate = 5.0f;
 
-    private bool LockDoorsForParkedVehicles;
-    private double AlarmRateForParkedVehicles;
-    private bool ShowBlipsForParkedVehicles;
-
-    private int NextSpawnTime;
-    private Vehicle LastPlayerVehicle;
+    private ParkedVehicleSpawner ParkedVehicleSpawner;
 
     public string ExcludedVehiclesRelativePath => Path.Combine(
         Path.GetFileNameWithoutExtension(Filename),
@@ -37,87 +22,80 @@ public class MultiplayerVehiclesScript : Script
 
     public MultiplayerVehiclesScript()
     {
-        Random = new Random();
-        Log = new Utilities.ScriptLog(Path.Combine(BaseDirectory, Path.ChangeExtension(Filename, ".log")));
-        LockDoorsForParkedVehicles = Settings.GetValue(ParkedVehiclesSettingsSection, "LockDoors", true);
-        AlarmRateForParkedVehicles = Settings.GetValue(ParkedVehiclesSettingsSection, "AlarmRatePercentage", 80.0)
-            * PercentageToRatio;
-        ShowBlipsForParkedVehicles = Settings.GetValue(ParkedVehiclesSettingsSection, "ShowBlips", true);
-        Log.EnableDebugLogging = Settings.GetValue(DebugSettingsSection, "VerboseLogging", false);
+        const float PercentageToRatio = 1.0e-2f;
+
+        ScriptLog.Open(Path.Combine(BaseDirectory, Path.ChangeExtension(Filename, ".log")));
+        ScriptLog.EnableDebugLogging = Settings.GetValue(DebugSettingsSection, "VerboseLogging", false);
 
         var excludedVehicleModels = new HashSet<string>();
-        if (LoadExcludedVehicles(ExcludedVehiclesRelativePath, excludedVehicleModels)) {
-            Log.Message($"{excludedVehicleModels.Count} vehicles loaded from {ExcludedVehiclesRelativePath}");
+        if (LoadExcludedVehicles(ExcludedVehiclesRelativePath, BaseDirectory, excludedVehicleModels)) {
+            ScriptLog.Message($"{excludedVehicleModels.Count} vehicles loaded from {ExcludedVehiclesRelativePath}");
         }
 
-        GroupedVehicleModels = VehicleModelList.All();
-        SpawnedVehicleSpawnpoints = new Dictionary<Vehicle, VehicleSpawnpoint>();
+        var groupedVehicleModels = VehicleModelList.All();
         var invalidVehicleModels = new HashSet<string>();
         var totalVehicleModels = 0;
-        foreach (var vehicleGroup in GroupedVehicleModels.Keys.ToArray()) {
-            var vehicleModels = GroupedVehicleModels[vehicleGroup];
+        foreach (var vehicleGroup in groupedVehicleModels.Keys.ToArray()) {
+            var vehicleModels = groupedVehicleModels[vehicleGroup];
             AddInvalidVehicleModels(invalidVehicleModels, vehicleModels);
             excludedVehicleModels.UnionWith(invalidVehicleModels);
             vehicleModels = ArrayEx.Exclude(vehicleModels, excludedVehicleModels);
-            GroupedVehicleModels[vehicleGroup] = vehicleModels;
+            groupedVehicleModels[vehicleGroup] = vehicleModels;
             totalVehicleModels += vehicleModels.Length;
         }
-        Log.Message(
+        ScriptLog.Message(
             $"{totalVehicleModels} vehicles are available, "
             + $"{invalidVehicleModels.Count} invalid vehicles excluded"
         );
 
-        SpawnpointCollection = new VehicleSpawnpointCollection();
-        SpawnpointCollection.AddRange(VehicleSpawnpointList.All());
-
-        var benchmark = new Utilities.Benchmark(new Stopwatch());
-        var elapsedTime = benchmark.Measure(() => {
-            SpawnpointSearchQuery = SpawnpointCollection.CreateSearchQuery(MaximumSpawnpointActivationRadius);
+        var minSpawnRadius = Settings.GetValue(DebugSettingsSection, "MinSpawnRadius", 300.0f);
+        var maxSpawnRadius = Settings.GetValue(DebugSettingsSection, "MaxSpawnRadius", 500.0f);
+        var despawnRadius = Settings.GetValue(DebugSettingsSection, "DespawnRadius", maxSpawnRadius + 20.0f);
+        var benchmark = new Benchmark(new Stopwatch());
+        var spawnpointCollection = new VehicleSpawnpointCollection();
+        spawnpointCollection.AddRange(VehicleSpawnpointList.All());
+        var elapsedTime = benchmark.Measure(out var parkedSpawnpointSearchQuery, () => {
+            return spawnpointCollection.CreateSearchQuery(maxSpawnRadius);
         });
-        var blockMap = SpawnpointSearchQuery.BlockMap;
-        Log.DebugMessage(
-            $"Created a spawnpoint query blockmap {blockMap.SegmentsX}x{blockMap.SegmentsY}x{blockMap.SegmentsZ}\n"
-            + $"  SegmentSize=[{blockMap.SegmentSize}]\n"
-            + $"  MinimumSegmentDensity={blockMap.MinimumSegmentDensity}\n"
-            + $"  MaximumSegmentDensity={blockMap.MaximumSegmentDensity}\n"
-            + $"  took {FormatTimeSpan(elapsedTime)}"
+        LogBlockMapStatistics(parkedSpawnpointSearchQuery.BlockMap, elapsedTime);
+
+        var random = new Random();
+        ParkedVehicleSpawner = new ParkedVehicleSpawner(
+            random,
+            parkedSpawnpointSearchQuery,
+            groupedVehicleModels,
+            minSpawnRadius,
+            despawnRadius,
+            Settings.GetValue(ParkingSettingsSection, "ShowBlips", true),
+            Settings.GetValue(ParkingSettingsSection, "LockDoors", true),
+            Settings.GetValue(ParkingSettingsSection, "AlarmRatePercentage", 80.0f) * PercentageToRatio
         );
 
-        NextSpawnTime = Game.GameTime;
-        LastPlayerVehicle = null;
-
-        Tick += UpdateTick;
+        Tick += CreateRateLimitedListener(SpawnParkedVehicles, SpawnRate);
+        Tick += CheckPlayerTakesVehicle;
         Aborted += CleanUp;
     }
 
-    private void UpdateTick(object sender, EventArgs e)
+    private void SpawnParkedVehicles(object sender, EventArgs e)
     {
-        if (Game.GameTime > NextSpawnTime) {
-            var playerPosition = Game.Player.Character.Position;
-            SpawnParkedVehicles(playerPosition, SpawnpointSearchQuery, MinimumSpawnpointActivationRadius);
-            DespawnParkedVehicles(playerPosition, SpawnpointDeactivationRadius);
-            NextSpawnTime = Game.GameTime + SpawnTimeout;
-        }
-        var playerVehicle = Game.Player.Character.CurrentVehicle;
-        if (playerVehicle != null && playerVehicle != LastPlayerVehicle) {
-            if (SpawnedVehicleSpawnpoints.TryGetValue(playerVehicle, out var spawnpoint)) {
-                spawnpoint.MarkAsTakenByPlayer();
-            }
-            LastPlayerVehicle = playerVehicle;
-        }
+        var playerPosition = Game.Player.Character.Position;
+        ParkedVehicleSpawner.DespawnVehicles(playerPosition);
+        ParkedVehicleSpawner.SpawnVehicles(playerPosition);
+    }
+
+    private void CheckPlayerTakesVehicle(object sender, EventArgs e)
+    {
+        ParkedVehicleSpawner.CheckPlayerTakesVehicle(Game.Player.Character.CurrentVehicle);
     }
 
     private void CleanUp(object sender, EventArgs e)
     {
-        foreach (var spawnpoint in SpawnedVehicleSpawnpoints.Values) {
-            spawnpoint.Dispose();
-        }
-        SpawnedVehicleSpawnpoints.Clear();
-        Log?.Dispose();
-        Log = null;
+        ParkedVehicleSpawner?.Dispose();
+        ParkedVehicleSpawner = null;
+        ScriptLog.Close();
     }
 
-    private void AddInvalidVehicleModels(ISet<string> invalidNames, string[] modelNames)
+    private static void AddInvalidVehicleModels(ISet<string> invalidNames, string[] modelNames)
     {
         foreach (var modelName in modelNames) {
             var model = new Model(modelName);
@@ -127,64 +105,13 @@ public class MultiplayerVehiclesScript : Script
         }
     }
 
-    private void SpawnParkedVehicles(
-        in Vector3 position,
-        VehicleSpawnpointCollection.SearchQuery searchQuery,
-        float minimumRadius)
-    {
-        var foundSpawnpoints = new List<VehicleSpawnpoint>(SpawnpointCollection.Count);
-        searchQuery.FindInSphere(position, foundSpawnpoints);
-        foreach (var spawnpoint in foundSpawnpoints) {
-            if (spawnpoint.Model != default) {
-                continue;
-            }
-            if (!GroupedVehicleModels.TryGetValue(spawnpoint.GroupId, out var vehicleModelNames)) {
-                continue;
-            }
-            var modelName = ArrayEx.Random(Random, vehicleModelNames);
-            if (!string.IsNullOrEmpty(modelName)) {
-                spawnpoint.RequestModel(modelName);
-            }
-        }
-        foreach (var spawnpoint in foundSpawnpoints) {
-            if (spawnpoint.Vehicle != null || !spawnpoint.IsModelAvailable) {
-                continue;
-            }
-            if (position.DistanceToSquared(spawnpoint.Position) < minimumRadius * minimumRadius) {
-                continue;
-            }
-            if (!spawnpoint.TrySpawnVehicle(out var vehicle)) {
-                continue;
-            }
-            SpawnedVehicleSpawnpoints.Add(vehicle, spawnpoint);
-            if (ShowBlipsForParkedVehicles) {
-                spawnpoint.AddBlipForVehicle();
-            }
-            if (LockDoorsForParkedVehicles) {
-                vehicle.LockStatus = VehicleLockStatus.CanBeBrokenInto;
-                vehicle.IsAlarmSet = Random.NextDouble() < AlarmRateForParkedVehicles;
-            }
-        }
-    }
-
-    private void DespawnParkedVehicles(in Vector3 position, float radius)
-    {
-        var radiusSquared = radius * radius;
-        foreach (var pair in SpawnedVehicleSpawnpoints.ToArray()) {
-            if (position.DistanceToSquared(pair.Value.Position) > radiusSquared) {
-                pair.Value.DespawnVehicle();
-                SpawnedVehicleSpawnpoints.Remove(pair.Key);
-            }
-        }
-    }
-
-    private bool LoadExcludedVehicles(string localFilename, HashSet<string> nameSet)
+    private static bool LoadExcludedVehicles(string localFilename, string baseDirectory, HashSet<string> nameSet)
     {
         string[] lines;
         try {
-            lines = File.ReadAllLines(Path.Combine(BaseDirectory, localFilename));
+            lines = File.ReadAllLines(Path.Combine(baseDirectory, localFilename));
         } catch (IOException exception) {
-            Log.ErrorMessage($"Failed to read {localFilename}\n  {exception.Message}");
+            ScriptLog.ErrorMessage($"Failed to read {localFilename}\n  {exception.Message}");
             return false;
         }
         foreach (var line in lines) {
@@ -200,7 +127,33 @@ public class MultiplayerVehiclesScript : Script
         return true;
     }
 
-    private string FormatTimeSpan(in TimeSpan timeSpan)
+    private static EventHandler CreateRateLimitedListener(EventHandler handler, float callRate)
+    {
+        const int MillisecondsPerSecond = 1000;
+
+        var callInterval = (int)(MillisecondsPerSecond / callRate);
+        var nextCallTime = (new Random()).Next(0, callInterval);
+        return (object sender, EventArgs e) => {
+            var gameTime = Game.GameTime;
+            if (gameTime > nextCallTime) {
+                handler(sender, e);
+                nextCallTime = gameTime + callInterval;
+            }
+        };
+    }
+
+    private static void LogBlockMapStatistics<T>(BlockMap3<T> blockMap, in TimeSpan elapsedTime) where T : IPosition3
+    {
+        ScriptLog.DebugMessage(
+            $"Created a spawnpoint query blockmap {blockMap.SegmentsX}x{blockMap.SegmentsY}x{blockMap.SegmentsZ}\n"
+            + $"  SegmentSize=[{blockMap.SegmentSize}]\n"
+            + $"  MinSegmentDensity={blockMap.MinSegmentDensity}\n"
+            + $"  MaxSegmentDensity={blockMap.MaxSegmentDensity}\n"
+            + $"  took {FormatTimeSpan(elapsedTime)}"
+        );
+    }
+
+    private static string FormatTimeSpan(in TimeSpan timeSpan)
     {
         const double NanosecondsPerMillisecond = 1.0e6;
         const double MicrosecondsPerMillisecond = 1.0e3;

@@ -12,11 +12,10 @@ namespace Utilities
             Stopwatch = stopwatch;
         }
 
-        public TimeSpan Measure(Action action)
+        public TimeSpan Measure<TResult>(out TResult result, Func<TResult> action)
         {
-            Stopwatch.Reset();
-            Stopwatch.Start();
-            action();
+            Stopwatch.Restart();
+            result = action();
             Stopwatch.Stop();
             return Stopwatch.Elapsed;
         }

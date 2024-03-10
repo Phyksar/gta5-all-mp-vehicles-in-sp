@@ -50,15 +50,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ISearchQuery.cs" />
+    <Compile Include="ScriptLog.cs" />
     <Compile Include="MultiplayerVehiclesScript.cs" />
+    <Compile Include="ParkedVehicleSpawner.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ArrayEx.cs" />
     <Compile Include="Utilities\Benchmark.cs" />
     <Compile Include="Utilities\BlockMap3.cs" />
     <Compile Include="MathEx.cs" />
+    <Compile Include="Utilities\HashCode.cs" />
     <Compile Include="Utilities\IPosition.cs" />
-    <Compile Include="Utilities\ScriptLog.cs" />
+    <Compile Include="Utilities\LogFile.cs" />
     <Compile Include="VehicleModelList.cs" />
+    <Compile Include="VehicleSpawner.cs" />
     <Compile Include="VehicleSpawnpointDesc.cs" />
     <Compile Include="VehicleSpawnpointList.cs" />
     <Compile Include="VehicleSpawnpointCollection.cs" />
