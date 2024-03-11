@@ -62,7 +62,7 @@ public class MultiplayerVehiclesScript : Script
 
         var minSpawnDistance = Settings.GetValue(DebugSettingsSection, "MinSpawnDistance", 200.0f);
         var maxSpawnDistance = Settings.GetValue(DebugSettingsSection, "MaxSpawnDistance", 300.0f);
-        var despawnDistance = Settings.GetValue(DebugSettingsSection, "DespawnDistance", maxSpawnDistance + 20.0f);
+        var despawnDistance = Settings.GetValue(DebugSettingsSection, "DespawnDistance", maxSpawnDistance + 100.0f);
         var spawnpointCollection = new VehicleSpawnpointCollection();
         spawnpointCollection.AddRange(VehicleSpawnpointList.All());
         var elapsedTime = Benchmark.Measure(out var parkedSpawnpointSearchQuery, () => {
@@ -96,7 +96,7 @@ public class MultiplayerVehiclesScript : Script
             Random,
             trafficSpawnpointSearchQuery,
             groupedVehicleModels,
-            minSpawnDistance,
+            Settings.GetValue(DebugSettingsSection, "TrafficLodDistanceThreshold", 300),
             despawnDistance,
             Settings.GetValue(TrafficSettingsSection, "ModelInvalidationDistance", 500.0f),
             Settings.GetValue(TrafficSettingsSection, "ShowBlips", true)
