@@ -55,7 +55,6 @@ public class TrafficVehicleSpawner : VehicleSpawner, IDisposable
     {
         foreach (var vehicle in SpawnedVehicles) {
             if (vehicle.Exists()) {
-                vehicle.IsPersistent = false;
                 vehicle.MarkAsNoLongerNeeded();
                 vehicle.Driver?.MarkAsNoLongerNeeded();
             }
@@ -131,7 +130,6 @@ public class TrafficVehicleSpawner : VehicleSpawner, IDisposable
 
         var vehicle = World.CreateVehicle(NextModel, worldVehicle.Position, worldVehicle.Heading);
         vehicle.SetNoCollision(worldVehicle, true);
-        vehicle.IsPersistent = true;
         vehicle.IsEngineRunning = worldVehicle.IsEngineRunning;
         vehicle.LockStatus = worldVehicle.LockStatus;
         vehicle.Velocity = worldVehicle.Velocity;
@@ -173,7 +171,6 @@ public class TrafficVehicleSpawner : VehicleSpawner, IDisposable
                 RemoveBlipFromVehicle(vehicle);
             }
             if (position.DistanceToSquared(vehicle.Position) > despawnDistanceSquared || isVehicleDead) {
-                vehicle.IsPersistent = false;
                 vehicle.MarkAsNoLongerNeeded();
                 vehicle.Driver?.MarkAsNoLongerNeeded();
             }
@@ -182,13 +179,15 @@ public class TrafficVehicleSpawner : VehicleSpawner, IDisposable
 
     public void CheckPlayerTakesVehicle(Vehicle vehicle)
     {
-        if (vehicle != null && vehicle != LastPlayerVehicle) {
-            if (SpawnedVehicles.Contains(vehicle)) {
-                SpawnedVehicles.Remove(vehicle);
-                RemoveBlipFromVehicle(vehicle);
-            }
-            LastPlayerVehicle = vehicle;
+        if (vehicle == null || vehicle == LastPlayerVehicle) {
+            return;
         }
+        if (SpawnedVehicles.Contains(vehicle)) {
+            vehicle.MarkAsNoLongerNeeded();
+            SpawnedVehicles.Remove(vehicle);
+        }
+        RemoveBlipFromVehicle(vehicle);
+        LastPlayerVehicle = vehicle;
     }
 
     private bool GetVehicleModelNameFromSpawnpoints(VehicleSpawnpoint[] spawnpoints, out string randomModelName)

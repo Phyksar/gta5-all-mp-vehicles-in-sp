@@ -117,13 +117,15 @@ public class ParkedVehicleSpawner : VehicleSpawner, IDisposable
 
     public void CheckPlayerTakesVehicle(Vehicle vehicle)
     {
-        if (vehicle != null && vehicle != LastPlayerVehicle) {
-            if (SpawnedVehicleSpawnpoints.TryGetValue(vehicle.Handle, out var spawnpoint)) {
-                spawnpoint.MarkAsTakenByPlayer();
-                vehicle.MarkAsNoLongerNeeded();
-            }
-            RemoveBlipFromVehicle(vehicle);
-            LastPlayerVehicle = vehicle;
+        if (vehicle == null || vehicle == LastPlayerVehicle) {
+            return;
         }
+        if (SpawnedVehicleSpawnpoints.TryGetValue(vehicle.Handle, out var spawnpoint)) {
+            spawnpoint.MarkAsTakenByPlayer();
+            vehicle.MarkAsNoLongerNeeded();
+            SpawnedVehicleSpawnpoints.Remove(vehicle.Handle);
+        }
+        RemoveBlipFromVehicle(vehicle);
+        LastPlayerVehicle = vehicle;
     }
 }
