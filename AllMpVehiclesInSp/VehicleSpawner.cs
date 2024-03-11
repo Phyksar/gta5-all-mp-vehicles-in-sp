@@ -5,6 +5,7 @@ using System;
 public abstract class VehicleSpawner
 {
     protected const string BlipName = "Unique Vehicle";
+
     protected const float BlipScale = 0.75f;
 
     public Vehicle TrySpawnVehicle(in Model model, in Vector3 position, float heading)
@@ -26,12 +27,12 @@ public abstract class VehicleSpawner
             return null;
         }
         var blip = vehicle.AddBlip();
-        blip.DisplayType = BlipDisplayType.MiniMapOnly;
         blip.Sprite = BlipSprite.Standard;
+        blip.Name = BlipName;
+        blip.DisplayType = BlipDisplayType.MiniMapOnly;
+        blip.IsShortRange = true;
         blip.Scale = BlipScale;
         blip.Color = color;
-        blip.IsShortRange = true;
-        blip.Name = BlipName;
         return blip;
     }
 

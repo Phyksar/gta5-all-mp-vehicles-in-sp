@@ -9,11 +9,20 @@ using Utilities;
 public class MultiplayerVehiclesScript : Script
 {
     private const string ParkingSettingsSection = "Parking";
+    private const string TrafficSettingsSection = "Traffic";
     private const string DebugSettingsSection = "Debug";
 
     private const float SpawnRate = 5.0f;
 
+    private Random Random;
+    private Benchmark Benchmark;
     private ParkedVehicleSpawner ParkedVehicleSpawner;
+    private TrafficVehicleSpawner TrafficVehicleSpawner;
+
+    private int MaxTrafficVehicles;
+    private int MinTrafficSpawnMilliseconds;
+    private int MaxTrafficSpawnMilliseconds;
+    private int NextTrafficSpawnTime;
 
     public string ExcludedVehiclesRelativePath => Path.Combine(
         Path.GetFileNameWithoutExtension(Filename),
@@ -23,7 +32,10 @@ public class MultiplayerVehiclesScript : Script
     public MultiplayerVehiclesScript()
     {
         const float PercentageToRatio = 1.0e-2f;
+        const int MillisecondsPerSecond = 1000;
 
+        Random = new Random();
+        Benchmark = new Benchmark(new Stopwatch());
         ScriptLog.Open(Path.Combine(BaseDirectory, Path.ChangeExtension(Filename, ".log")));
         ScriptLog.EnableDebugLogging = Settings.GetValue(DebugSettingsSection, "VerboseLogging", false);
 
@@ -48,20 +60,24 @@ public class MultiplayerVehiclesScript : Script
             + $"{invalidVehicleModels.Count} invalid vehicles excluded"
         );
 
-        var minSpawnDistance = Settings.GetValue(DebugSettingsSection, "MinSpawnDistance", 300.0f);
-        var maxSpawnDistance = Settings.GetValue(DebugSettingsSection, "MaxSpawnDistance", 500.0f);
+        var minSpawnDistance = Settings.GetValue(DebugSettingsSection, "MinSpawnDistance", 200.0f);
+        var maxSpawnDistance = Settings.GetValue(DebugSettingsSection, "MaxSpawnDistance", 300.0f);
         var despawnDistance = Settings.GetValue(DebugSettingsSection, "DespawnDistance", maxSpawnDistance + 20.0f);
-        var benchmark = new Benchmark(new Stopwatch());
         var spawnpointCollection = new VehicleSpawnpointCollection();
         spawnpointCollection.AddRange(VehicleSpawnpointList.All());
-        var elapsedTime = benchmark.Measure(out var parkedSpawnpointSearchQuery, () => {
+        var elapsedTime = Benchmark.Measure(out var parkedSpawnpointSearchQuery, () => {
             return spawnpointCollection.CreateSearchQuery(maxSpawnDistance);
         });
         LogBlockMapStatistics(parkedSpawnpointSearchQuery.BlockMap, elapsedTime);
 
-        var random = new Random();
+        var localTrafficDistance = Settings.GetValue(TrafficSettingsSection, "LocalTrafficDistance", 1000.0f);
+        elapsedTime = Benchmark.Measure(out var trafficSpawnpointSearchQuery, () => {
+            return spawnpointCollection.CreateSearchQuery(localTrafficDistance);
+        });
+        LogBlockMapStatistics(parkedSpawnpointSearchQuery.BlockMap, elapsedTime);
+
         ParkedVehicleSpawner = new ParkedVehicleSpawner(
-            random,
+            Random,
             parkedSpawnpointSearchQuery,
             groupedVehicleModels,
             minSpawnDistance,
@@ -71,7 +87,26 @@ public class MultiplayerVehiclesScript : Script
             Settings.GetValue(ParkingSettingsSection, "AlarmRatePercentage", 80.0f) * PercentageToRatio
         );
 
+        MaxTrafficVehicles = Settings.GetValue(TrafficSettingsSection, "MaxVehicles", 5);
+        MinTrafficSpawnMilliseconds = (int)
+            (Settings.GetValue(TrafficSettingsSection, "MinSpawnSeconds", 10.0f) * MillisecondsPerSecond);
+        MaxTrafficSpawnMilliseconds = (int)
+            (Settings.GetValue(TrafficSettingsSection, "MaxSpawnSeconds", 60.0f) * MillisecondsPerSecond);
+        TrafficVehicleSpawner = new TrafficVehicleSpawner(
+            Random,
+            trafficSpawnpointSearchQuery,
+            groupedVehicleModels,
+            minSpawnDistance,
+            despawnDistance,
+            Settings.GetValue(TrafficSettingsSection, "ModelInvalidationDistance", 500.0f),
+            Settings.GetValue(TrafficSettingsSection, "ShowBlips", true)
+        );
+
+        NextTrafficSpawnTime = Game.GameTime + Random.Next(MinTrafficSpawnMilliseconds, MaxTrafficSpawnMilliseconds);
+        ScriptLog.DebugMessage($"Next traffic spawn time is {LogFile.FormatGameTime(NextTrafficSpawnTime)}");
+
         Tick += CreateRateLimitedListener(SpawnParkedVehicles, SpawnRate);
+        Tick += CreateRateLimitedListener(SpawnTrafficVehicles, SpawnRate);
         Tick += CheckPlayerTakesVehicle;
         Aborted += CleanUp;
     }
@@ -83,15 +118,55 @@ public class MultiplayerVehiclesScript : Script
         ParkedVehicleSpawner.SpawnVehicles(playerPosition);
     }
 
+    private void SpawnTrafficVehicles(object sender, EventArgs e)
+    {
+        var gameTime = Game.GameTime;
+        var playerPosition = Game.Player.Character.Position;
+        TrafficVehicleSpawner.DespawnVehicles(Game.Player.Character.Position);
+        if (TrafficVehicleSpawner.IsModelFree(playerPosition)) {
+            TrafficVehicleSpawner.TryRequestModel(playerPosition);
+        }
+        if (gameTime > NextTrafficSpawnTime && TrafficVehicleSpawner.IsModelAvailable) {
+            Vehicle vehicle = null;
+            int worldVehiclePassengers = 0;
+            TimeSpan elapsedTime = new TimeSpan(0);
+            if (TrafficVehicleSpawner.TotalVehicles < MaxTrafficVehicles) {
+                var worldVehicle = TrafficVehicleSpawner.FindProperWorldVehicleToReplace(
+                    playerPosition,
+                    Game.Player.Character.Velocity
+                );
+                if (worldVehicle != null) {
+                    worldVehiclePassengers = worldVehicle.PassengerCount;
+                    elapsedTime = Benchmark.Measure(out vehicle, () => {
+                        return TrafficVehicleSpawner.SpawnVehicleReplacingWorldVehicle(worldVehicle);
+                    });
+                }
+            }
+            if (vehicle != null) {
+                TrafficVehicleSpawner.FreeModel();
+                NextTrafficSpawnTime = gameTime + Random.Next(MinTrafficSpawnMilliseconds, MaxTrafficSpawnMilliseconds);
+                ScriptLog.DebugMessage(
+                    $"Traffic vehicle 0x{vehicle.Handle:x8} spawned, took {FormatTimeSpan(elapsedTime)}\n"
+                    + $"{vehicle.PassengerCount} of {worldVehiclePassengers} passengers was transferred\n"
+                    + $"Next traffic spawn time is {LogFile.FormatGameTime(NextTrafficSpawnTime)}"
+                );
+            }
+        }
+    }
+
     private void CheckPlayerTakesVehicle(object sender, EventArgs e)
     {
-        ParkedVehicleSpawner.CheckPlayerTakesVehicle(Game.Player.Character.CurrentVehicle);
+        var playerVehicle = Game.Player.Character.CurrentVehicle;
+        ParkedVehicleSpawner.CheckPlayerTakesVehicle(playerVehicle);
+        TrafficVehicleSpawner.CheckPlayerTakesVehicle(playerVehicle);
     }
 
     private void CleanUp(object sender, EventArgs e)
     {
         ParkedVehicleSpawner?.Dispose();
         ParkedVehicleSpawner = null;
+        TrafficVehicleSpawner?.Dispose();
+        TrafficVehicleSpawner = null;
         ScriptLog.Close();
     }
 
@@ -127,12 +202,12 @@ public class MultiplayerVehiclesScript : Script
         return true;
     }
 
-    private static EventHandler CreateRateLimitedListener(EventHandler handler, float callRate)
+    private EventHandler CreateRateLimitedListener(EventHandler handler, float callRate)
     {
         const int MillisecondsPerSecond = 1000;
 
         var callInterval = (int)(MillisecondsPerSecond / callRate);
-        var nextCallTime = (new Random()).Next(0, callInterval);
+        var nextCallTime = Random.Next(0, callInterval);
         return (object sender, EventArgs e) => {
             var gameTime = Game.GameTime;
             if (gameTime > nextCallTime) {

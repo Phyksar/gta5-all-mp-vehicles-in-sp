@@ -616,7 +616,7 @@ public static class VehicleSpawnpointList
                 GroupId = VehicleGroup.Tuners
             },
             new VehicleSpawnpointDesc {
-                Position = new Vector3(-762.865f, -38.192f, 37.687f),
+                Position = new Vector3(-762.865f, -38.192f, 37.130f),
                 Heading = 115.427f,
                 GroupId = VehicleGroup.Valentine
             },
