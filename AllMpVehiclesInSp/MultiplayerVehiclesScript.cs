@@ -141,10 +141,14 @@ public class MultiplayerVehiclesScript : Script
                         return TrafficVehicleSpawner.SpawnVehicleReplacingWorldVehicle(worldVehicle);
                     });
                 }
+                if (vehicle == null) {
+                    // Spawn failed, break now to keep NextTrafficSpawnTime the same
+                    return;
+                }
             }
+            NextTrafficSpawnTime = gameTime + Random.Next(MinTrafficSpawnMilliseconds, MaxTrafficSpawnMilliseconds);
             if (vehicle != null) {
                 TrafficVehicleSpawner.FreeModel();
-                NextTrafficSpawnTime = gameTime + Random.Next(MinTrafficSpawnMilliseconds, MaxTrafficSpawnMilliseconds);
                 ScriptLog.DebugMessage(
                     $"Traffic vehicle 0x{vehicle.Handle:x8} spawned, took {FormatTimeSpan(elapsedTime)}\n"
                     + $"{vehicle.PassengerCount} of {worldVehiclePassengers} passengers was transferred\n"
