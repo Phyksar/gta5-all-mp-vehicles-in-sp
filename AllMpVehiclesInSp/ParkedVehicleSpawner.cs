@@ -67,12 +67,18 @@ public class ParkedVehicleSpawner : VehicleSpawner, IDisposable
         }
         var minSpawnDistanceSquared = MinSpawnDistance * MinSpawnDistance;
         foreach (var spawnpoint in spawnpoints) {
-            if (spawnpoint.Vehicle != null || !spawnpoint.IsModelAvailable || spawnpoint.WasOccupied) {
+            if (maxSpawns <= 0) {
+                break;
+            }
+            if (
+                spawnpoint.Vehicle != null
+                || !spawnpoint.IsModelAvailable
+                || spawnpoint.WasOccupied
+                || position.DistanceToSquared(spawnpoint.Position) < minSpawnDistanceSquared
+            ) {
                 continue;
             }
-            if (position.DistanceToSquared(spawnpoint.Position) < minSpawnDistanceSquared) {
-                continue;
-            }
+            maxSpawns--;
             var vehicle = TrySpawnVehicle(spawnpoint.Model, spawnpoint.Position, spawnpoint.Heading);
             if (vehicle == null) {
                 spawnpoint.MarkAsOccupied();
@@ -81,9 +87,6 @@ public class ParkedVehicleSpawner : VehicleSpawner, IDisposable
                     + $"potentially occupied position at [{spawnpoint.Position}]"
                 );
                 continue;
-            }
-            if (--maxSpawns < 0) {
-                return;
             }
 
             spawnpoint.Vehicle = vehicle;
