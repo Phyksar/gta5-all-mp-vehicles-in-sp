@@ -36,3 +36,17 @@ You can modify the `AllMpVehiclesInSp.ini` settings file in the `scripts` folder
   > Controls the rate of parked vehicles that have an alarm set on, `0` means no vehicles will have one and `100` means all of the vehicles will have an alarm. This setting depends on `LockDoors` set to `true`.
 - ShowBlips = `true`/`false`
   > Show blips on minimap for parked vehicles.
+
+### Traffic
+- MaxVehicles = `<number of vehicles>`
+  > Defines the maximum number of vehicles that can be observed in traffic at once. Use `0` to completely disable traffic spawning.
+- MinSpawnSeconds = `<time in seconds>`
+  > The minimum boundary of randomized time used to spawn one vehicle in traffic.
+- MaxSpawnSeconds = `<time in seconds>`
+  > The maximum boundary of randomized time used to spawn one vehicle in traffic.
+- ModelInvalidationDistance = `<distance in meters>`
+  > Defines the limiting distance between the current player position and the player position at which the vehicle model was requested. If this distance goes beyond the limit, a new model will be requested.
+- LocalTrafficDistance = `<distance in meters>`
+  > Defines the range of nearby vehicle spawnpoints used to determine the vehicle models in traffic.
+- ShowBlips = `true`/`false`
+  > Show blips on minimap for traffic vehicles.
