@@ -167,7 +167,11 @@ public class TrafficVehicleSpawner : VehicleSpawner, IDisposable
                 SpawnedVehicles.Remove(vehicle);
                 continue;
             }
-            if (position.DistanceToSquared(vehicle.Position) > despawnDistanceSquared) {
+            var isVehicleDead = vehicle.IsDead;
+            if (isVehicleDead) {
+                RemoveBlipFromVehicle(vehicle);
+            }
+            if (position.DistanceToSquared(vehicle.Position) > despawnDistanceSquared || isVehicleDead) {
                 vehicle.IsPersistent = false;
                 vehicle.MarkAsNoLongerNeeded();
                 vehicle.Driver?.MarkAsNoLongerNeeded();

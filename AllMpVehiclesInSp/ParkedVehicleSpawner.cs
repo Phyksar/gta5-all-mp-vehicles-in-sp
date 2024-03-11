@@ -104,7 +104,11 @@ public class ParkedVehicleSpawner : VehicleSpawner, IDisposable
     {
         var distanceSquared = DespawnDistance * DespawnDistance;
         foreach (var pair in SpawnedVehicleSpawnpoints.ToArray()) {
-            if (position.DistanceToSquared(pair.Value.Position) > distanceSquared) {
+            var isVehicleDead = pair.Value.Vehicle.IsDead;
+            if (isVehicleDead) {
+                RemoveBlipFromVehicle(pair.Value.Vehicle);
+            }
+            if (position.DistanceToSquared(pair.Value.Position) > distanceSquared || isVehicleDead) {
                 pair.Value.DespawnVehicle();
                 SpawnedVehicleSpawnpoints.Remove(pair.Key);
             }
