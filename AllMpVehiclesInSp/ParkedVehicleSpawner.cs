@@ -100,7 +100,7 @@ public class ParkedVehicleSpawner : VehicleSpawner, IDisposable
         }
     }
 
-    public void DespawnVehicles(in Vector3 position)
+    public void FreeVehicles(in Vector3 position)
     {
         var distanceSquared = DespawnDistance * DespawnDistance;
         foreach (var pair in SpawnedVehicleSpawnpoints.ToArray()) {
@@ -109,7 +109,7 @@ public class ParkedVehicleSpawner : VehicleSpawner, IDisposable
                 RemoveBlipFromVehicle(pair.Value.Vehicle);
             }
             if (position.DistanceToSquared(pair.Value.Position) > distanceSquared || isVehicleDead) {
-                pair.Value.DespawnVehicle();
+                pair.Value.FreeVehicle();
                 SpawnedVehicleSpawnpoints.Remove(pair.Key);
             }
         }

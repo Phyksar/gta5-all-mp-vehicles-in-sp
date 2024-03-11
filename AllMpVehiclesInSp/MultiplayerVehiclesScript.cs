@@ -114,7 +114,7 @@ public class MultiplayerVehiclesScript : Script
     private void SpawnParkedVehicles(object sender, EventArgs e)
     {
         var playerPosition = Game.Player.Character.Position;
-        ParkedVehicleSpawner.DespawnVehicles(playerPosition);
+        ParkedVehicleSpawner.FreeVehicles(playerPosition);
         ParkedVehicleSpawner.SpawnVehicles(playerPosition);
     }
 
@@ -122,7 +122,7 @@ public class MultiplayerVehiclesScript : Script
     {
         var gameTime = Game.GameTime;
         var playerPosition = Game.Player.Character.Position;
-        TrafficVehicleSpawner.DespawnVehicles(Game.Player.Character.Position);
+        TrafficVehicleSpawner.FreeVehicles(Game.Player.Character.Position);
         if (TrafficVehicleSpawner.IsModelFree(playerPosition)) {
             TrafficVehicleSpawner.TryRequestModel(playerPosition);
         }
