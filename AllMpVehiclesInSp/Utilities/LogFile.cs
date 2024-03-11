@@ -55,20 +55,9 @@ namespace Utilities
                 return;
             }
 
-            const int MinutesPerHour = 60;
-            const int SecondsPerMinute = 60;
-            const int MillisecondsPerSecond = 1000;
-            const int MillisecondsPerMinute = MillisecondsPerSecond * SecondsPerMinute;
-            const int MillisecondsPerHour = MillisecondsPerMinute * MinutesPerHour;
-
             var dateTime = DateTime.Now;
-            var gameTime = Game.GameTime;
-            var gameHours = gameTime / MillisecondsPerHour;
-            var gameMinutes = (gameTime / MillisecondsPerMinute) % MinutesPerHour;
-            var gameSeconds = (gameTime / MillisecondsPerSecond) % SecondsPerMinute;
-            var gameMilliseconds = gameTime % MillisecondsPerSecond;
-            var buffer = $"{dateTime:yyyy-MM-dd HH:mm:ss.fff} "
-                + $"({gameHours:d3}:{gameMinutes:d2}:{gameSeconds:d2}.{gameMilliseconds:d3}) | ";
+            var gameTime = FormatGameTime(Game.GameTime);
+            var buffer = $"{dateTime:yyyy-MM-dd HH:mm:ss.fff} ({gameTime}) | ";
             if (!string.IsNullOrEmpty(severity)) {
                 buffer += $"[{severity.ToUpper()}] ";
             }
@@ -86,6 +75,21 @@ namespace Utilities
             }
             StreamWriter.WriteLine(buffer);
             StreamWriter.Flush();
+        }
+
+        public static string FormatGameTime(int gameTime)
+        {
+            const int MinutesPerHour = 60;
+            const int SecondsPerMinute = 60;
+            const int MillisecondsPerSecond = 1000;
+            const int MillisecondsPerMinute = MillisecondsPerSecond * SecondsPerMinute;
+            const int MillisecondsPerHour = MillisecondsPerMinute * MinutesPerHour;
+
+            var gameHours = gameTime / MillisecondsPerHour;
+            var gameMinutes = (gameTime / MillisecondsPerMinute) % MinutesPerHour;
+            var gameSeconds = (gameTime / MillisecondsPerSecond) % SecondsPerMinute;
+            var gameMilliseconds = gameTime % MillisecondsPerSecond;
+            return $"{gameHours:d3}:{gameMinutes:d2}:{gameSeconds:d2}.{gameMilliseconds:d3}";
         }
     }
 }

@@ -12,6 +12,7 @@ public class VehicleSpawnpoint : IPosition3, IDisposable
     public Model Model = default;
     public Vehicle Vehicle = null;
     public bool WasTakenByPlayer = false;
+    public bool WasOccupied = false;
 
     public bool IsModelAvailable => Model != default && Model.IsValid && Model.IsLoaded;
 
@@ -41,6 +42,11 @@ public class VehicleSpawnpoint : IPosition3, IDisposable
         WasTakenByPlayer = true;
     }
 
+    public void MarkAsOccupied()
+    {
+        WasOccupied = true;
+    }
+
     public void DespawnVehicle()
     {
         if (!WasTakenByPlayer && (Vehicle?.Exists() ?? false)) {
@@ -50,6 +56,7 @@ public class VehicleSpawnpoint : IPosition3, IDisposable
         Model = default;
         Vehicle = null;
         WasTakenByPlayer = false;
+        WasOccupied = false;
     }
 
     public override int GetHashCode()

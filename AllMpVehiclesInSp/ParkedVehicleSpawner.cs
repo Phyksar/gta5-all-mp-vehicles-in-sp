@@ -48,7 +48,7 @@ public class ParkedVehicleSpawner : VehicleSpawner, IDisposable
         SpawnedVehicleSpawnpoints.Clear();
     }
 
-    public void SpawnVehicles(in Vector3 position)
+    public void SpawnVehicles(in Vector3 position, int maxSpawns = 1)
     {
         var spawnpoints = SpawnpointSearchQuery.FindInSphere(position);
         foreach (var spawnpoint in spawnpoints) {
@@ -67,7 +67,7 @@ public class ParkedVehicleSpawner : VehicleSpawner, IDisposable
         }
         var minSpawnDistanceSquared = MinSpawnDistance * MinSpawnDistance;
         foreach (var spawnpoint in spawnpoints) {
-            if (spawnpoint.Vehicle != null || !spawnpoint.IsModelAvailable) {
+            if (spawnpoint.Vehicle != null || !spawnpoint.IsModelAvailable || spawnpoint.WasOccupied) {
                 continue;
             }
             if (position.DistanceToSquared(spawnpoint.Position) < minSpawnDistanceSquared) {
@@ -75,12 +75,17 @@ public class ParkedVehicleSpawner : VehicleSpawner, IDisposable
             }
             var vehicle = TrySpawnVehicle(spawnpoint.Model, spawnpoint.Position, spawnpoint.Heading);
             if (vehicle == null) {
+                spawnpoint.MarkAsOccupied();
                 ScriptLog.DebugMessage(
                     $"Failed to spawn vehicle at spawnpoint 0x{spawnpoint.GetHashCode():x8}, "
                     + $"potentially occupied position at [{spawnpoint.Position}]"
                 );
                 continue;
             }
+            if (--maxSpawns < 0) {
+                return;
+            }
+
             spawnpoint.Vehicle = vehicle;
             SpawnedVehicleSpawnpoints.Add(vehicle.Handle, spawnpoint);
             if (AddBlips) {
