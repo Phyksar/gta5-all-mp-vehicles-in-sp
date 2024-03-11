@@ -111,7 +111,8 @@ public class TrafficVehicleSpawner : VehicleSpawner, IDisposable
         if (vehicle.IsPersistent || vehicle.LodDistance < LodDistanceThreshold) {
             return null;
         }
-        if (vehicle.Driver == null || !vehicle.Driver.Exists()) {
+        var driver = vehicle.Driver;
+        if (driver == null || !driver.Exists() || driver.IsPlayer || driver.IsPersistent) {
             return null;
         }
         return vehicle;
