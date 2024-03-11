@@ -8,7 +8,6 @@ public class TrafficVehicleSpawner : VehicleSpawner, IDisposable
 {
     private const float AheadSpawnVelocityThreshold = 18.0f;
     private const float WorldVehicleLookupDistance = 100.0f;
-    private const int LodDistanceStep = 50;
 
     private Random Random;
     private ISearchQuery<VehicleSpawnpoint> SpawnpointSearchQuery;
@@ -18,7 +17,7 @@ public class TrafficVehicleSpawner : VehicleSpawner, IDisposable
     private Vehicle LastPlayerVehicle;
     private Vector3 ModelRequestPosition;
 
-    private float SpawnDistance;
+    private int LodDistanceThreshold;
     private float DespawnDistance;
     private float ModelInvalidationDistance;
     private bool AddBlips;
@@ -27,13 +26,11 @@ public class TrafficVehicleSpawner : VehicleSpawner, IDisposable
 
     public bool IsModelAvailable => NextModel != default && NextModel.IsValid & NextModel.IsLoaded;
 
-    private int LodDistanceThreshold => (int)SpawnDistance / LodDistanceStep * LodDistanceStep;
-
     public TrafficVehicleSpawner(
         Random random,
         ISearchQuery<VehicleSpawnpoint> spawnpointSearchQuery,
         IReadOnlyDictionary<VehicleGroup, string[]> groupedVehicleModels,
-        float spawnDistance,
+        int lodDistanceThreshold,
         float despawnDistance,
         float modelInvalidationDistance,
         bool addBlips)
@@ -45,7 +42,7 @@ public class TrafficVehicleSpawner : VehicleSpawner, IDisposable
         NextModel = default;
         LastPlayerVehicle = null;
         ModelRequestPosition = Vector3.Zero;
-        SpawnDistance = spawnDistance;
+        LodDistanceThreshold = lodDistanceThreshold;
         DespawnDistance = despawnDistance;
         ModelInvalidationDistance = modelInvalidationDistance;
         AddBlips = addBlips;
@@ -99,9 +96,9 @@ public class TrafficVehicleSpawner : VehicleSpawner, IDisposable
         if (NextModel == default || !NextModel.IsValid || !NextModel.IsLoaded) {
             return null;
         }
-        var vehicleLookupPosition = position.Around(SpawnDistance);
+        var vehicleLookupPosition = position.Around(LodDistanceThreshold);
         if (velocity.LengthSquared() > AheadSpawnVelocityThreshold * AheadSpawnVelocityThreshold) {
-            vehicleLookupPosition = position + velocity.Normalized * SpawnDistance;
+            vehicleLookupPosition = position + velocity.Normalized * LodDistanceThreshold;
         }
         var vehicle = World.GetClosestVehicle(vehicleLookupPosition, WorldVehicleLookupDistance);
         if (vehicle == null || !vehicle.Exists() || !ShouldReplaceVehicle(vehicle)) {
