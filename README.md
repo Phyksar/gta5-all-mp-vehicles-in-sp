@@ -15,7 +15,8 @@ This mod adds all the vehicles from GTA Online to GTA 5. The new vehicles can be
 
 # Installation
 1. Download and install [ScriptHookV](http://dev-c.com/gtav/scripthookv/) and [ScriptHookVDotNet](https://github.com/scripthookvdotnet/scripthookvdotnet/releases/latest)
-2. Move all files from the archive to the `scripts` folder inside the game directory (create new, if it doesn't exist).
+2. Head to the [Releases](https://github.com/Phyksar/gta5-all-mp-vehicles-in-sp/releases) page and download the latest one.
+3. Move all files from the archive to the `scripts` folder inside the game directory (create new, if it doesn't exist).
 
 # Build
 1. Complete first step from the Installation guide.
