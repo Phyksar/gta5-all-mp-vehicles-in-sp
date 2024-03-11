@@ -9,7 +9,8 @@ public class ParkedVehicleSpawner : VehicleSpawner, IDisposable
     private Random Random;
     private ISearchQuery<VehicleSpawnpoint> SpawnpointSearchQuery;
     private IReadOnlyDictionary<VehicleGroup, string[]> GroupedVehicleModels;
-    private Dictionary<int, VehicleSpawnpoint> SpawnedVehicleSpawnpoints;
+    private HashSet<VehicleSpawnpoint> ActiveVehicleSpawnpoints;
+    private Dictionary<int, VehicleSpawnpoint> VehiclesToSpawnpoints;
     private Vehicle LastPlayerVehicle;
 
     private float MinSpawnDistance;
@@ -31,7 +32,8 @@ public class ParkedVehicleSpawner : VehicleSpawner, IDisposable
         Random = random;
         SpawnpointSearchQuery = spawnpointSearchQuery;
         GroupedVehicleModels = groupedVehicleModels;
-        SpawnedVehicleSpawnpoints = new Dictionary<int, VehicleSpawnpoint>();
+        ActiveVehicleSpawnpoints = new HashSet<VehicleSpawnpoint>();
+        VehiclesToSpawnpoints = new Dictionary<int, VehicleSpawnpoint>();
         LastPlayerVehicle = null;
         MinSpawnDistance = minSpawnDistance;
         DespawnDistance = despawnDistance;
@@ -42,10 +44,10 @@ public class ParkedVehicleSpawner : VehicleSpawner, IDisposable
 
     public void Dispose()
     {
-        foreach (var spawnpoint in SpawnedVehicleSpawnpoints.Values) {
+        foreach (var spawnpoint in ActiveVehicleSpawnpoints) {
             spawnpoint.Dispose();
         }
-        SpawnedVehicleSpawnpoints.Clear();
+        ActiveVehicleSpawnpoints.Clear();
     }
 
     public void SpawnVehicles(in Vector3 position, int maxSpawns = 1)
@@ -63,7 +65,7 @@ public class ParkedVehicleSpawner : VehicleSpawner, IDisposable
             }
             var modelName = ArrayEx.Random(Random, vehicleModelNames);
             spawnpoint.RequestModel(modelName);
-            ScriptLog.DebugMessage($"Model {modelName} requested for spawnoint 0x{spawnpoint.GetHashCode():x8}");
+            ScriptLog.DebugMessage($"Model {modelName} requested for spawnpoint 0x{spawnpoint.GetHashCode():x8}");
         }
         var minSpawnDistanceSquared = MinSpawnDistance * MinSpawnDistance;
         foreach (var spawnpoint in spawnpoints) {
@@ -73,15 +75,16 @@ public class ParkedVehicleSpawner : VehicleSpawner, IDisposable
             if (
                 spawnpoint.Vehicle != null
                 || !spawnpoint.IsModelAvailable
-                || spawnpoint.WasOccupied
+                || ActiveVehicleSpawnpoints.Contains(spawnpoint)
                 || position.DistanceToSquared(spawnpoint.Position) < minSpawnDistanceSquared
             ) {
                 continue;
             }
-            maxSpawns--;
             var vehicle = TrySpawnVehicle(spawnpoint.Model, spawnpoint.Position, spawnpoint.Heading);
+            spawnpoint.Vehicle = vehicle;
+            maxSpawns--;
+            ActiveVehicleSpawnpoints.Add(spawnpoint);
             if (vehicle == null) {
-                spawnpoint.MarkAsOccupied();
                 ScriptLog.DebugMessage(
                     $"Failed to spawn vehicle at spawnpoint 0x{spawnpoint.GetHashCode():x8}, "
                     + $"potentially occupied position at [{spawnpoint.Position}]"
@@ -89,8 +92,8 @@ public class ParkedVehicleSpawner : VehicleSpawner, IDisposable
                 continue;
             }
 
-            spawnpoint.Vehicle = vehicle;
-            SpawnedVehicleSpawnpoints.Add(vehicle.Handle, spawnpoint);
+            spawnpoint.FreeModel();
+            VehiclesToSpawnpoints.Add(vehicle.Handle, spawnpoint);
             if (AddBlips) {
                 AddBlipForVehicle(vehicle, BlipColor.WhiteNotPure);
             }
@@ -99,21 +102,29 @@ public class ParkedVehicleSpawner : VehicleSpawner, IDisposable
                 vehicle.IsAlarmSet = Random.NextDouble() < AlarmRate;
                 vehicle.NeedsToBeHotwired = true;
             }
-            ScriptLog.DebugMessage($"Vehicle spawned at spawnpoint 0x{spawnpoint.GetHashCode():x8}");
+            ScriptLog.DebugMessage(
+                $"Vehicle spawned at spawnpoint 0x{spawnpoint.GetHashCode():x8}\n"
+                + $"  {ActiveVehicleSpawnpoints.Count} active vehicle spawnpoints\n"
+                + $"  {VehiclesToSpawnpoints.Count} vehicles mapped to spawnpoints"
+            );
         }
     }
 
     public void FreeVehicles(in Vector3 position)
     {
         var distanceSquared = DespawnDistance * DespawnDistance;
-        foreach (var pair in SpawnedVehicleSpawnpoints.ToArray()) {
-            var isVehicleDead = pair.Value.Vehicle.IsDead;
+        foreach (var spawnpoint in ActiveVehicleSpawnpoints.ToArray()) {
+            var isVehicleDead = (spawnpoint.Vehicle?.Exists() ?? false) && spawnpoint.Vehicle.IsDead;
             if (isVehicleDead) {
-                RemoveBlipFromVehicle(pair.Value.Vehicle);
+                RemoveBlipFromVehicle(spawnpoint.Vehicle);
             }
-            if (position.DistanceToSquared(pair.Value.Position) > distanceSquared || isVehicleDead) {
-                pair.Value.FreeVehicle();
-                SpawnedVehicleSpawnpoints.Remove(pair.Key);
+            if (isVehicleDead || position.DistanceToSquared(spawnpoint.Position) > distanceSquared) {
+                if (spawnpoint.Vehicle != null) {
+                    VehiclesToSpawnpoints.Remove(spawnpoint.Vehicle.Handle);
+                }
+                ActiveVehicleSpawnpoints.Remove(spawnpoint);
+                spawnpoint.FreeVehicle();
+                spawnpoint.FreeModel();
             }
         }
     }
@@ -123,10 +134,10 @@ public class ParkedVehicleSpawner : VehicleSpawner, IDisposable
         if (vehicle == null || vehicle == LastPlayerVehicle) {
             return;
         }
-        if (SpawnedVehicleSpawnpoints.TryGetValue(vehicle.Handle, out var spawnpoint)) {
+        if (VehiclesToSpawnpoints.TryGetValue(vehicle.Handle, out var spawnpoint)) {
+            VehiclesToSpawnpoints.Remove(vehicle.Handle);
             spawnpoint.MarkAsTakenByPlayer();
             vehicle.MarkAsNoLongerNeeded();
-            SpawnedVehicleSpawnpoints.Remove(vehicle.Handle);
         }
         RemoveBlipFromVehicle(vehicle);
         LastPlayerVehicle = vehicle;
