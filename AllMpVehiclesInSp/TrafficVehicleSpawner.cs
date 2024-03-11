@@ -158,9 +158,9 @@ public class TrafficVehicleSpawner : VehicleSpawner, IDisposable
         return vehicle;
     }
 
-    public void DespawnVehicles(in Vector3 position)
+    public void FreeVehicles(in Vector3 position)
     {
-        var despawnDistanceSquared = DespawnDistance * DespawnDistance;
+        var freeDistanceSquared = DespawnDistance * DespawnDistance;
         foreach (var vehicle in SpawnedVehicles.ToArray()) {
             if (!vehicle.Exists()) {
                 SpawnedVehicles.Remove(vehicle);
@@ -170,7 +170,7 @@ public class TrafficVehicleSpawner : VehicleSpawner, IDisposable
             if (isVehicleDead) {
                 RemoveBlipFromVehicle(vehicle);
             }
-            if (position.DistanceToSquared(vehicle.Position) > despawnDistanceSquared || isVehicleDead) {
+            if (position.DistanceToSquared(vehicle.Position) > freeDistanceSquared || isVehicleDead) {
                 vehicle.MarkAsNoLongerNeeded();
                 vehicle.Driver?.MarkAsNoLongerNeeded();
             }

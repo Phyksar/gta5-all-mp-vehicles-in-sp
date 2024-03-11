@@ -25,7 +25,7 @@ public class VehicleSpawnpoint : IPosition3, IDisposable
 
     public void Dispose()
     {
-        DespawnVehicle();
+        FreeVehicle();
     }
 
     public void RequestModel(string modelName)
@@ -47,7 +47,7 @@ public class VehicleSpawnpoint : IPosition3, IDisposable
         WasOccupied = true;
     }
 
-    public void DespawnVehicle()
+    public void FreeVehicle()
     {
         if (!WasTakenByPlayer && (Vehicle?.Exists() ?? false)) {
             Vehicle.MarkAsNoLongerNeeded();
